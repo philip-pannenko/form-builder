@@ -10,7 +10,7 @@ Configuration Driven Form
 * Form model is kept clean (especially when fields appear/disappear)
 
 ## Remaining
-* Load form with defaults
+* ~~Load form with defaults~~
 * Split up InputView and Input to separate Mixins
 * Add additional HTML elements (textarea, label, fieldset, ...)
 * Test Input/InputViews to demonstrate true isolation
