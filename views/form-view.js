@@ -22,9 +22,7 @@ var app = app || {};
         var input = new app.Input(_.clone(item));
 
         input.set('uiAttribute', input.attributes.dataModel.indexOf('.') !== -1);
-        if(!input.attributes.uiAttribute) {
-          this.model.set(input.attributes.dataModel, input.attributes.value);
-        }
+        this.model.set(input.attributes.dataModel, input.attributes.value);
 
         // Build the behavior tree by linking each adjacently associated model with one another
         this.collection.add(input);
@@ -60,8 +58,8 @@ var app = app || {};
       }, this);
 
       // Assign each behavior an event to trigger off of
-      _.each(this.behaviors, function (behavior, index, name) {
-        Backbone.on(index + '-changed', this.refreshForm, this);
+      _.each(this.behaviors, function (behavior, key, name) {
+        Backbone.on(key + '-changed', this.refreshForm, this);
       }, this);
 
       //console.log(JSON.stringify(this.behaviors, function (key, value) {
@@ -74,10 +72,25 @@ var app = app || {};
 
       // Any time an Input model is changed, update the Form model
       Backbone.on('model-changed', this.updateModel, this);
+
+      // Build all of the Inputs onto the form separate from one another
       this.render();
+
+      // Run all of the behaviors consolidated from each Input
+      // to render the form according to how the Inputs ended up interacting with one another
+      _.each(this.behaviors, function (behavior, key) {
+        var dotIndex = key.indexOf('.');
+        var dataModel = (dotIndex !== -1) ? key.substr(0, dotIndex) : key;
+        var property = (dotIndex !== -1) ? key.substr(dotIndex + 1) : key;
+        var value = this.model.attributes[key];
+        Backbone.trigger(dataModel + '-changed', property, value);
+      }, this);
+
     },
 
     refreshForm: function (dataModel, value) {
+
+      debugger;
 
       // Gets called when an Input changes values and then
       //  we find out what other Inputs are associated with this change
