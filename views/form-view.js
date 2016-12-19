@@ -90,8 +90,6 @@ var app = app || {};
 
     refreshForm: function (dataModel, value) {
 
-      debugger;
-
       // Gets called when an Input changes values and then
       //  we find out what other Inputs are associated with this change
       //  so that we fire off the other Inputs behavior / validation methods
