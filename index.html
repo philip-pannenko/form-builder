@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8"/>
-  <title>Form Builder</title>
-  <link rel="stylesheet" href="assets/css/normalize.css">
-  <link rel="stylesheet" href="assets/css/skeleton.css">
-  <link rel="stylesheet" href="assets/css/skeleton-alerts.css">
+    <meta charset="utf-8"/>
+    <title>Form Builder</title>
+    <link rel="stylesheet" href="assets/css/normalize.css">
+    <link rel="stylesheet" href="assets/css/skeleton.css">
+    <link rel="stylesheet" href="assets/css/skeleton-alerts.css">
 </head>
 
 <body class="container">
+
 
 <script src="constants.js"></script>
 <script src="assets/js/libs/jquery-2.2.0.js"></script>
@@ -21,6 +22,74 @@
 <script src="views/input-view.js"></script>
 <script src="views/form-view.js"></script>
 <script src="app.js"></script>
+
+<script>
+
+    function HTMLComponent(options) {
+        this.elements = options && options.elements ? options.elements : [];
+    }
+
+    HTMLComponent.prototype.render = function () {
+        var html = '';
+        _.each(this.elements, function (element) {
+            html += element.getHTML() + '\n';
+        }, html);
+        console.log(html);
+    };
+
+    function HTMLElement(options, protectedVariables) {
+        protectedVariables = protectedVariables || {};
+        protectedVariables.label = options && options.label ? options.label : 'Button';
+        protectedVariables.styleClass = options && options.styleClass ? ' class="' + options.styleClass + '"' : '';
+        protectedVariables.domId = options && options.domId ? options.domId : _.uniqueId(protectedVariables.type + '-');
+        protectedVariables.template = '<div></div>';
+
+        this.getHTML = function () {
+            return protectedVariables.template;
+        };
+    }
+
+    function ButtonElement(options) {
+        var protectedVariables = {type: 'button'};
+        HTMLElement.call(this, options, protectedVariables);
+        var action = options && options.action ? options.action : 'non-op';
+        protectedVariables.template = '<input id="' + protectedVariables.domId + '" type="button" value="' + protectedVariables.label + '" ' + protectedVariables.styleClass + '>';
+        this.getAction = function () {
+            return action;
+        };
+    }
+
+
+    ButtonElement.prototype = Object.create(HTMLElement.prototype);
+    ButtonElement.constructor = ButtonElement;
+
+    function LabelElement(options) {
+        var protectedVariables = {type: 'label'};
+        HTMLElement.call(this, options, protectedVariables);
+        var forAttr = options && options.forAttr ? 'for="' + options.forAttr + '" ' : '';
+        protectedVariables.template = '<label id="' + protectedVariables.domId + '" ' + forAttr + 'value="' + protectedVariables.label + '"' + protectedVariables.styleClass + '></label>';
+
+    }
+
+    LabelElement.prototype = Object.create(HTMLElement.prototype);
+    LabelElement.constructor = LabelElement;
+
+    var twoButtonsComponent = new HTMLComponent({
+        elements: [
+            new ButtonElement({label: 'I am a button', styleClass: 'primary', domId: 'test', action: 'clicks!'}),
+            new LabelElement({label: 'I am label', forAttr:'test2'}),
+            new ButtonElement({label: 'I am another button', domId: 'test2'}),
+
+        ]
+    });
+
+    twoButtonsComponent.render();
+
+    var b1 = new ButtonElement({label: 'I am a button', styleClass: 'primary', domId: 'test', action: 'clicks!'});
+    var l1 = new LabelElement({label: 'I am label'});
+
+
+</script>
 
 </body>
 </html>

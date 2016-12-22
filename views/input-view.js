@@ -1,6 +1,10 @@
 var app = app || {};
 (function ($) {
   'use strict';
+
+
+  // radioCheckboxTemplateMixin
+
   app.InputView = Backbone.View.extend({
 
     model: app.Input,
@@ -23,13 +27,6 @@ var app = app || {};
       '<fieldset>' +
       '<label id="<%= obj.attributes.domId %>"><%= obj.attributes.label %></label>' +
       '</fieldset>'
-    ),
-
-    radioCheckboxTemplate: _.template(
-      '<label for="<%= domId %>">' +
-      '  <input type="<%= type %>" name="<%= dataModel %>" id="<%= domId %>" value="<%= value %>" <%= isReadOnly? "readonly" : "" %>/>' +
-      '  <span class="label-body"><%= label %></span>' +
-      '</label>'
     ),
 
     buttonTemplate: _.template(
@@ -74,25 +71,25 @@ var app = app || {};
         case 'email':
           this.$el.html(this.textTemplate(this.model));
           break;
-        case 'checkbox':
-        case 'radio':
-          this.$el.html(this.groupTemplate(this.model));
-          var checkedDom;
-          var $group = this.$('#' + this.model.attributes.domId);
-          _.each(this.model.attributes.inputs, function (input) {
-            if (this.model.attributes.value === input.value) {
-              checkedDom = input.domId;
-            }
-            if (!input.isReadOnly) {
-              input.isReadOnly = false;
-            }
-            $group.append(this.radioCheckboxTemplate(input));
-          }, this);
-
-          if (checkedDom) {
-            this.$('#' + checkedDom).prop("checked", this.model.attributes.value);
-          }
-          break;
+        // case 'checkbox':
+        // case 'radio':
+        //   this.$el.html(this.groupTemplate(this.model));
+        //   var checkedDom;
+        //   var $group = this.$('#' + this.model.attributes.domId);
+        //   _.each(this.model.attributes.inputs, function (input) {
+        //     if (this.model.attributes.value === input.value) {
+        //       checkedDom = input.domId;
+        //     }
+        //     if (!input.isReadOnly) {
+        //       input.isReadOnly = false;
+        //     }
+        //     $group.append(this.radioCheckboxTemplate(input));
+        //   }, this);
+        //
+        //   if (checkedDom) {
+        //     this.$('#' + checkedDom).prop("checked", this.model.attributes.value);
+        //   }
+        //   break;
         case 'button':
           this.$el.html(this.buttonTemplate(this.model));
           break;
@@ -105,7 +102,6 @@ var app = app || {};
       if (this.model.validationError) {
         this.$el.prepend(this.errorTemplate(this.model));
       }
-
       return this;
     },
 
