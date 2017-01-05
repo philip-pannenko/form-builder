@@ -10,57 +10,72 @@ var app = app || {};
     },
 
     template: _.template('<h1>Generated Form</h1><form id="form"></form><input id="submit" class="button-primary" type="submit" value="submit input">'),
-
     model: app.Form,
-
     inputs: app.Inputs,
     behaviors: {},
 
     initialize: function () {
 
-      _.each(PAYLOAD, function (item) {
-        var input = new app.Input(_.clone(item));
+      _.each(PAYLOAD2, function (component) {
 
-        input.set('uiAttribute', input.attributes.dataModel.indexOf('.') !== -1);
-        this.model.set(input.attributes.dataModel, input.attributes.value);
+        // var componentObject = new component.type(component.options);
 
-        // Build the behavior tree by linking each adjacently associated model with one another
-        this.collection.add(input);
-        _.each(input.attributes.behaviors, function (behavior) {
+        // var template = componentObject.getTemplate();
+        // var properties = componentObject.getProperties();
 
-          console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ')');
-          _.each(behavior.conditions, function (condition) {
-            if (!this.behaviors[condition.dataModel]) {
-              this.behaviors[condition.dataModel] = {};
-            }
+        // _.each(properties, function (property) {
 
-            var behaviorEvents = this.behaviors[condition.dataModel];
-            behaviorEvents[input.attributes.dataModel] = {
-              model: input,
-              method: behavior.method,
-              conditions: []
-            };
+          if (component.dataModel) {
+            this.model.set(component.dataModel, null);
+          }
 
-            //console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ') original condition (' + condition.dataModel + ')');
-            _.each(behavior.conditions, function (condition) {
+          this.collection.add(new app.Input(component));
 
-              //console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ') related conditions (' + condition.dataModel + ')');
-              behaviorEvents[input.attributes.dataModel]['conditions'].push({
-                dataModel: condition.dataModel,
-                value: condition.value,
-                isVisible: condition.isVisible,
-                isReadOnly: condition.isReadOnly
-              });
 
-            }, this)
-          }, this)
-        }, this);
+        // }, this);
+
+
+
+        //
+        // input.set('uiAttribute', input.attributes.dataModel.indexOf('.') !== -1);
+        //
+        // // Build the behavior tree by linking each adjacently associated model with one another
+
+        // _.each(input.attributes.behaviors, function (behavior) {
+        //
+        //   console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ')');
+        //   _.each(behavior.conditions, function (condition) {
+        //     if (!this.behaviors[condition.dataModel]) {
+        //       this.behaviors[condition.dataModel] = {};
+        //     }
+        //
+        //     var behaviorEvents = this.behaviors[condition.dataModel];
+        //     behaviorEvents[input.attributes.dataModel] = {
+        //       model: input,
+        //       method: behavior.method,
+        //       conditions: []
+        //     };
+        //
+        //     //console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ') original condition (' + condition.dataModel + ')');
+        //     _.each(behavior.conditions, function (condition) {
+        //
+        //       //console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ') related conditions (' + condition.dataModel + ')');
+        //       behaviorEvents[input.attributes.dataModel]['conditions'].push({
+        //         dataModel: condition.dataModel,
+        //         value: condition.value,
+        //         isVisible: condition.isVisible,
+        //         isReadOnly: condition.isReadOnly
+        //       });
+        //
+        //     }, this)
+        //   }, this)
+        // }, this);
       }, this);
 
       // Assign each behavior an event to trigger off of
-      _.each(this.behaviors, function (behavior, key, name) {
-        Backbone.on(key + '-changed', this.refreshForm, this);
-      }, this);
+      // _.each(this.behaviors, function (behavior, key, name) {
+      //   Backbone.on(key + '-changed', this.refreshForm, this);
+      // }, this);
 
       //console.log(JSON.stringify(this.behaviors, function (key, value) {
       //  if (typeof value === 'function') {
@@ -72,19 +87,20 @@ var app = app || {};
 
       // Any time an Input model is changed, update the Form model
       Backbone.on('model-changed', this.updateModel, this);
-
+      //
       // Build all of the Inputs onto the form separate from one another
       this.render();
 
-      // Run all of the behaviors consolidated from each Input
-      // to render the form according to how the Inputs ended up interacting with one another
-      _.each(this.behaviors, function (behavior, key) {
-        var dotIndex = key.indexOf('.');
-        var dataModel = (dotIndex !== -1) ? key.substr(0, dotIndex) : key;
-        var property = (dotIndex !== -1) ? key.substr(dotIndex + 1) : key;
-        var value = this.model.attributes[key];
-        Backbone.trigger(dataModel + '-changed', property, value);
-      }, this);
+      //
+      // // Run all of the behaviors consolidated from each Input
+      // // to render the form according to how the Inputs ended up interacting with one another
+      // _.each(this.behaviors, function (behavior, key) {
+      //   var dotIndex = key.indexOf('.');
+      //   var dataModel = (dotIndex !== -1) ? key.substr(0, dotIndex) : key;
+      //   var property = (dotIndex !== -1) ? key.substr(dotIndex + 1) : key;
+      //   var value = this.model.attributes[key];
+      //   Backbone.trigger(dataModel + '-changed', property, value);
+      // }, this);
 
     },
 
@@ -113,6 +129,11 @@ var app = app || {};
 
     updateModel: function (property, value) {
       this.model.updateModel(property, value);
+
+      // Then trigger any ancillary inputs that need to be changed because of one thing or another...
+      console.log(property + '-changed, ' + value);
+      Backbone.trigger(property + '-changed', property, value);
+
     },
 
     submitForm: function () {
@@ -120,7 +141,7 @@ var app = app || {};
     },
 
     render: function () {
-      //console.log('rendering FormView');
+      console.log('rendering FormView');
       this.$el.append(this.template());
       this.collection.each(function (input) {
         this.$('#form').append(new app.InputView({model: input}).render().$el);
