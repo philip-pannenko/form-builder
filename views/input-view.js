@@ -50,15 +50,25 @@ var app = app || {};
       // }
 
       if (this.model.attributes.list) {
-
-        this.$el.empty();
-        _.each(this.model.attributes.list, function (item) {
-          var foo = this.model.toJSON();
-          foo.value = item;
-          foo.label = item;
-          foo.checked = this.model.attributes.checked ? this.model.attributes.checked[item] : false;
-          this.$el.append(this.template(foo));
-        }, this)
+        if(this.model.attributes.type === 'checkbox') {
+          this.$el.empty();
+          _.each(this.model.attributes.list, function (item) {
+            var foo = this.model.toJSON();
+            foo.value = item;
+            foo.label = item;
+            foo.checked = this.model.attributes.checked ? this.model.attributes.checked[item] || this.model.attributes.checked === item  : false;
+            this.$el.append(this.template(foo));
+          }, this)
+        } else if(this.model.attributes.type === 'radio') {
+          this.$el.empty();
+          _.each(this.model.attributes.list, function (item) {
+            var foo = this.model.toJSON();
+            foo.value = item;
+            foo.label = item;
+            foo.checked = this.model.attributes.checked ? this.model.attributes.checked[item] || this.model.attributes.checked === item  : false;
+            this.$el.append(this.template(foo));
+          }, this)
+        }
       } else {
         this.$el.html(this.template(this.model.toJSON()));
       }
@@ -88,24 +98,34 @@ var app = app || {};
       //  and let others know.
       var value = e.target.value;
 
+      debugger;
       // If this is a list of items, check what changed
       if (this.model.attributes.list) {
-        if (!this.model.attributes.checked) {
-          this.model.set('checked', {}, {silent: true});
-        }
-        if (e.target.checked) {
-          this.model.attributes.checked[value] = e.target.checked;
-        } else {
-          delete this.model.attributes.checked[value];
-          if (_.size(this.model.attributes.checked) === 0) {
-            this.model.set('checked', null, {silent: true});
+
+          if (!this.model.attributes.checked) {
+            this.model.set('checked', {}, {silent: true});
           }
+          if (e.target.checked) {
+            if(e.target.type === 'radio') {
+              this.model.attributes.checked = {};
+            }
+            this.model.attributes.checked[value] = e.target.checked;
+          } else {
+            delete this.model.attributes.checked[value];
+            if (_.size(this.model.attributes.checked) === 0) {
+              this.model.set('checked', null, {silent: true});
+            }
+          }
+        if (e.target.type === 'checkbox') {
+          value = _.clone(this.model.attributes.checked);
         }
-        value = _.clone(this.model.attributes.checked);
+
       }
       else if (e.target.type === 'checkbox') {
         this.model.set('checked', e.target.checked, {silent: true});
-        value = this.model.attributes.checked ? true : undefined;
+        value = this.model.attributes.checked;
+      } else if (e.target.type === 'radio') {
+        this.model.set('checked', value, {silent: true});
       }
       else if (this.model.attributes.value !== value) {
         this.model.set('value', value, {silent: true}); // silent because we don't want to re-render DOM if it's not valid

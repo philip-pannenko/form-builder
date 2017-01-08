@@ -95,44 +95,58 @@ var Templates = {};
 Templates.Button = {
   type: 'button',
   styleClass: null,
-  template:
-    '<input id="<%= domId %>" type="button" ' +
-    '<%= styleClass ? " class=" + styleClass : ""%>' +
-    '<%= value ? " value=" + value + "": "" %> >'
+  template: '<input id="<%= domId %>" type="button" ' +
+  '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
+  '<%= value ? " value=\'" + value + "\'" : "" %> >'
 };
 Templates.Label = {
   type: 'label',
   styleClass: null,
-  template:
-    '<label id="<%= domId %>" ' +
-    '<%= forAttr ? " for=" + forAttr: ""%>' +
-    '<%= styleClass ? " class=" + styleClass : ""%>> <%= label %> </label>'
+  forAttr: null,
+  label: null,
+  template: '<label id="<%= domId %>" ' +
+  '<%= forAttr ? " for=\'" + forAttr + "\'": ""%>' +
+  '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>> <%= label %> </label>'
 };
 
 Templates.Text = {
   type: 'text',
   styleClass: null,
   value: null,
-  template:
-    '<input id="<%= domId %>" type="text"' +
-    '<%= styleClass ? " class=" + styleClass : ""%>' +
-    '<%= placeholder ? " placeholder=" + placeholder : ""%>' +
-    '<%= value ? " value=" + value : ""%>>'
+  placeholder: null,
+  template: '<input id="<%= domId %>" type="text"' +
+  '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
+  '<%= placeholder ? " placeholder=\'" + placeholder + "\'"  : ""%>' +
+  '<%= value ? " value=\'" + value + "\'" : ""%>>'
 };
 
-Templates.Radio = {
+Templates.Checkbox = {
   type: 'checkbox',
   styleClass: null,
   checked: null,
   value: null,
-  template:
-    '<label <%= styleClass ? " class=" + styleClass : ""%>>' +
-    '  <input type="checkbox" id="<%= domId %>"' +
-    '  <%= checked ? " checked" : "" %>' +
-    '  <%= dataModel ? " name=" + dataModel : ""%>' +
-    '  <%= value ? " value=" + value: ""%>>' +
-    '  <span class="label-body"><%= label %></span>' +
-    '</label>'
+  label: null,
+  template: '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
+  '  <input type="checkbox" id="<%= domId %>"' +
+  '  <%= checked ? " checked" : "" %>' +
+  '  <%= value ? " value=\'" + value + "\'" : ""%>>' +
+  '  <span class="label-body"><%= label %></span>' +
+  '</label>'
+};
+
+Templates.Radio = {
+  type: 'radio',
+  styleClass: null,
+  checked: null,
+  value: null,
+  label: null,
+  template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
+  '  <input type="radio" id="<%= domId %>"' +
+  '  <%= dataModel ? " name=\'" + dataModel + "\'" : "" %>' +
+  '  <%= checked ? " checked" : "" %>' +
+  '  <%= value ? " value=\'" + value + "\'" : ""%>>' +
+  '  <span class="label-body"><%= label %></span>' +
+  '</label>'
 };
 
 var Validation = {
@@ -189,7 +203,7 @@ var Behaviors = {
   }
 };
 
-var PAYLOAD2 = [
+var FormSchema = [
   {
     template: Templates.Label,
     label: 'Name',
@@ -210,156 +224,210 @@ var PAYLOAD2 = [
   }, {
     template: Templates.Label,
     label: 'Color',
+    forAttr: 'my-checkbox'
+  }, {
+    template: Templates.Checkbox,
+    domId: 'my-checkbox',
+    dataModel: 'color',
+    list: ['Blue', 'Red', 'Green'],
+    checked: {Blue:true,Red:true}
+  }, {
+    template: Templates.Label,
+    label: 'Show Dessert',
+    forAttr: 'one-checkbox'
+  }, {
+    template: Templates.Checkbox,
+    domId: 'one-checkbox',
+    dataModel: 'showDesserts',
+    label: 'Yes please show the desserts',
+    value: false
+  }, {
+    template: Templates.Label,
+    label: 'Dessert',
     forAttr: 'my-radio'
   }, {
     template: Templates.Radio,
     domId: 'my-radio',
-    dataModel: 'color',
-    list: ['Blue', 'Red', 'Green']
+    dataModel: 'dessert',
+    list: ['Cookies', 'Ice Cream'],
+    checked: 'Cookies'
   }, {
     template: Templates.Label,
-    label: 'Single Radio',
-    forAttr: 'one-radio'
+    domId: 'iceCreamLogic',
+    label: 'Whip cream and cherries w/ the Ice cream is awesome'
   }, {
-    template: Templates.Radio,
-    domId: 'one-radio',
-    dataModel: 'checkMe',
-    label: 'Check Me Please',
-    value: 'OneRadioChecked!'
+    template: Templates.Label,
+    domId: 'cookieLogic',
+    label: 'Can\'t do it without milk'
   }
 ];
 
+var BehaviorSchema = [{
+  name: 'showIceCreamLogic',
+  target: 'iceCreamLogic',
+  type: 'isVisible',
+  rules: [{
+    type: 'proposition',
+    element: 'showDesserts',
+    value: true
+  }, {
+    type: 'variable',
+    element: 'dessert',
+    operator: 'EQUALS',
+    value: 'Ice Cream'
+  }, {
+    type: 'operator',
+    element: 'AND'
+  }]
+}, {
+  name: 'showCookieLogic',
+  target: 'cookieLogic',
+  type: 'isVisible',
+  rules: [{
+    type: 'proposition',
+    element: 'showDesserts',
+    value: true
+  }, {
+    type: 'variable',
+    element: 'dessert',
+    operator: 'EQUALS',
+    value: 'Cookies'
+  }, {
+    type: 'operator',
+    element: 'AND'
+  }]
+}];
 
-var PAYLOAD = [
-  {
-    label: 'Party Type',
-    type: 'radio',
-    domId: 'partyType',
-    dataModel: 'partyType',
-    value: 'individual',
-    inputs: [{
-      domId: 'party-type-business',
-      value: 'business',
-      type: 'radio',
-      dataModel: 'partyType',
-      label: 'Business'
-    }, {
-      domId: 'party-type-individual',
-      value: 'individual',
-      type: 'radio',
-      dataModel: 'partyType',
-      label: 'Individual'
-    }]
-  }, {
-    type: 'checkbox',
-    domId: 'show-middle-name',
-    dataModel: 'middleName.isVisible',
-    value: true,
-    inputs: [{
-      domId: 'show-middle-name-is-visible',
-      value: true,
-      type: 'checkbox',
-      dataModel: 'middleName.isVisible',
-      label: 'Show Middle Name'
-    }],
-    behaviors: [{
-      method: Behaviors.toggleVisibility,
-      conditions: [{
-        dataModel: 'partyType',
-        value: 'individual'
-      }]
-    }]
-  }, {
-    label: 'Business Name',
-    placeholder: 'Joe\'s Coffee',
-    domId: 'business-name',
-    dataModel: 'businessName',
-    validationRules: [
-      {method: Validation.notEmpty},
-      {method: Validation.maxLength, options: {length: 10}}
-    ],
-    behaviors: [{
-      method: Behaviors.toggleVisibility,
-      conditions: [{
-        dataModel: 'partyType',
-        value: 'business'
-      }]
-    }]
-  }, {
-    label: 'First Name',
-    placeholder: 'Joe',
-    domId: 'first-name',
-    dataModel: 'firstName',
-    validationRules: [
-      {method: Validation.notEmpty},
-      {method: Validation.maxLength, options: {length: 10}}
-    ],
-    behaviors: [{
-      method: Behaviors.toggleVisibility,
-      conditions: [{
-        dataModel: 'partyType',
-        value: 'individual'
-      }]
-    }]
-  }, {
-    label: 'Middle Name',
-    placeholder: 'Bob',
-    domId: 'middle-name',
-    dataModel: 'middleName',
-    validationRules: [
-      {method: Validation.maxLength, options: {length: 5}}
-    ],
-    behaviors: [{
-      method: Behaviors.toggleVisibility,
-      conditions: [{
-        dataModel: 'partyType',
-        value: 'individual'
-      }, {
-        dataModel: 'middleName.isVisible',
-        isVisible: true
-      }]
-    }]
-  }, {
-    label: 'Last Name',
-    placeholder: 'Smith',
-    domId: 'last-name',
-    dataModel: 'lastName',
-    validationRules: [
-      {method: Validation.notEmpty},
-      {method: Validation.maxLength, options: {length: 20}}
-    ],
-    behaviors: [{
-      method: Behaviors.toggleVisibility,
-      conditions: [{
-        dataModel: 'partyType',
-        value: 'individual'
-      }]
-    }]
-  }, {
-    label: 'Email',
-    placeholder: 'joe.smith@domain.com',
-    domId: 'email',
-    type: 'email',
-    dataModel: 'email',
-    validationRules: [
-      {method: Validation.emailAddress}
-    ]
-  }, {
-    type: 'button',
-    domId: 'make-email-read-only',
-    dataModel: 'email.isReadOnly',
-    value: true,
-    label: 'Make E-Mail Read-Only'
-  }, {
-    type: 'button',
-    domId: 'make-email-editable',
-    dataModel: 'email.isReadOnly',
-    value: false,
-    label: 'Make E-Mail Editable'
-  }, {
-    type: 'button',
-    domId: 'make-email-toggle-editability',
-    dataModel: 'email.isReadOnly',
-    value: 'toggle',
-    label: 'Toggle E-Mail Read-Only'
-  }];
+// var PAYLOAD = [
+//   {
+//     label: 'Party Type',
+//     type: 'radio',
+//     domId: 'partyType',
+//     dataModel: 'partyType',
+//     value: 'individual',
+//     inputs: [{
+//       domId: 'party-type-business',
+//       value: 'business',
+//       type: 'radio',
+//       dataModel: 'partyType',
+//       label: 'Business'
+//     }, {
+//       domId: 'party-type-individual',
+//       value: 'individual',
+//       type: 'radio',
+//       dataModel: 'partyType',
+//       label: 'Individual'
+//     }]
+//   }, {
+//     type: 'checkbox',
+//     domId: 'show-middle-name',
+//     dataModel: 'middleName.isVisible',
+//     value: true,
+//     inputs: [{
+//       domId: 'show-middle-name-is-visible',
+//       value: true,
+//       type: 'checkbox',
+//       dataModel: 'middleName.isVisible',
+//       label: 'Show Middle Name'
+//     }],
+//     behaviors: [{
+//       method: Behaviors.toggleVisibility,
+//       conditions: [{
+//         dataModel: 'partyType',
+//         value: 'individual'
+//       }]
+//     }]
+//   }, {
+//     label: 'Business Name',
+//     placeholder: 'Joe\'s Coffee',
+//     domId: 'business-name',
+//     dataModel: 'businessName',
+//     validationRules: [
+//       {method: Validation.notEmpty},
+//       {method: Validation.maxLength, options: {length: 10}}
+//     ],
+//     behaviors: [{
+//       method: Behaviors.toggleVisibility,
+//       conditions: [{
+//         dataModel: 'partyType',
+//         value: 'business'
+//       }]
+//     }]
+//   }, {
+//     label: 'First Name',
+//     placeholder: 'Joe',
+//     domId: 'first-name',
+//     dataModel: 'firstName',
+//     validationRules: [
+//       {method: Validation.notEmpty},
+//       {method: Validation.maxLength, options: {length: 10}}
+//     ],
+//     behaviors: [{
+//       method: Behaviors.toggleVisibility,
+//       conditions: [{
+//         dataModel: 'partyType',
+//         value: 'individual'
+//       }]
+//     }]
+//   }, {
+//     label: 'Middle Name',
+//     placeholder: 'Bob',
+//     domId: 'middle-name',
+//     dataModel: 'middleName',
+//     validationRules: [
+//       {method: Validation.maxLength, options: {length: 5}}
+//     ],
+//     behaviors: [{
+//       method: Behaviors.toggleVisibility,
+//       conditions: [{
+//         dataModel: 'partyType',
+//         value: 'individual'
+//       }, {
+//         dataModel: 'middleName.isVisible',
+//         isVisible: true
+//       }]
+//     }]
+//   }, {
+//     label: 'Last Name',
+//     placeholder: 'Smith',
+//     domId: 'last-name',
+//     dataModel: 'lastName',
+//     validationRules: [
+//       {method: Validation.notEmpty},
+//       {method: Validation.maxLength, options: {length: 20}}
+//     ],
+//     behaviors: [{
+//       method: Behaviors.toggleVisibility,
+//       conditions: [{
+//         dataModel: 'partyType',
+//         value: 'individual'
+//       }]
+//     }]
+//   }, {
+//     label: 'Email',
+//     placeholder: 'joe.smith@domain.com',
+//     domId: 'email',
+//     type: 'email',
+//     dataModel: 'email',
+//     validationRules: [
+//       {method: Validation.emailAddress}
+//     ]
+//   }, {
+//     type: 'button',
+//     domId: 'make-email-read-only',
+//     dataModel: 'email.isReadOnly',
+//     value: true,
+//     label: 'Make E-Mail Read-Only'
+//   }, {
+//     type: 'button',
+//     domId: 'make-email-editable',
+//     dataModel: 'email.isReadOnly',
+//     value: false,
+//     label: 'Make E-Mail Editable'
+//   }, {
+//     type: 'button',
+//     domId: 'make-email-toggle-editability',
+//     dataModel: 'email.isReadOnly',
+//     value: 'toggle',
+//     label: 'Toggle E-Mail Read-Only'
+//   }];

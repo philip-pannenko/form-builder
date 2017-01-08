@@ -13,63 +13,56 @@ var app = app || {};
     model: app.Form,
     inputs: app.Inputs,
     behaviors: {},
+    rules: {},
+    reverseRulesLookup: {},
 
     initialize: function () {
 
-      _.each(PAYLOAD2, function (component) {
+      this.model.set('domIds', {}, {silent: true});
 
-        // var componentObject = new component.type(component.options);
+      _.each(FormSchema, function (component) {
 
-        // var template = componentObject.getTemplate();
-        // var properties = componentObject.getProperties();
-
-        // _.each(properties, function (property) {
-
-          if (component.dataModel) {
+        if (component.dataModel) {
+          if (typeof component.value !== 'undefined') {
+            this.model.set(component.dataModel, component.value);
+          } else if (component.checked) {
+            if (typeof component.checked === "string") {
+              this.model.set(component.dataModel, component.checked);
+            } else {
+              this.model.set(component.dataModel, _.keys(component.checked));
+            }
+          } else {
             this.model.set(component.dataModel, null);
           }
+        }
+        this.model.get('domIds')[component.domId] = true;
+        this.collection.add(new app.Input(component));
 
-          this.collection.add(new app.Input(component));
+      }, this);
 
+      _.each(BehaviorSchema, function (behavior) {
+        var formRule = new jsrules.Rule(behavior.name);
 
-        // }, this);
+        _.each(behavior.rules, function (rule, i) {
 
+          if (rule.type === 'proposition') {
+            formRule.addProposition(rule.element, rule.value);
+          } else if (rule.type === 'variable') {
+            formRule.addVariable(rule.element + 'expected', rule.value);
+            formRule.addVariable(rule.element, null); // actual
+            formRule.addOperator(jsrules.Operator.EQUAL_TO);
+          } else if (rule.type === 'operator') {
+            formRule.addOperator(jsrules.Operator.AND);
+          }
 
+          // Reverse lookup rules by dataModel so that all behaviors can be run if the dataModel is changed
+          if (!this.reverseRulesLookup[rule.element]) {
+            this.reverseRulesLookup[rule.element] = [];
+          }
+          this.reverseRulesLookup[rule.element].push(behavior.name);
+        }, this);
+        this.rules[behavior.name] = formRule;
 
-        //
-        // input.set('uiAttribute', input.attributes.dataModel.indexOf('.') !== -1);
-        //
-        // // Build the behavior tree by linking each adjacently associated model with one another
-
-        // _.each(input.attributes.behaviors, function (behavior) {
-        //
-        //   console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ')');
-        //   _.each(behavior.conditions, function (condition) {
-        //     if (!this.behaviors[condition.dataModel]) {
-        //       this.behaviors[condition.dataModel] = {};
-        //     }
-        //
-        //     var behaviorEvents = this.behaviors[condition.dataModel];
-        //     behaviorEvents[input.attributes.dataModel] = {
-        //       model: input,
-        //       method: behavior.method,
-        //       conditions: []
-        //     };
-        //
-        //     //console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ') original condition (' + condition.dataModel + ')');
-        //     _.each(behavior.conditions, function (condition) {
-        //
-        //       //console.log('Input(' + input.attributes.dataModel + ') Behavior (' + behavior.method.name + ') related conditions (' + condition.dataModel + ')');
-        //       behaviorEvents[input.attributes.dataModel]['conditions'].push({
-        //         dataModel: condition.dataModel,
-        //         value: condition.value,
-        //         isVisible: condition.isVisible,
-        //         isReadOnly: condition.isReadOnly
-        //       });
-        //
-        //     }, this)
-        //   }, this)
-        // }, this);
       }, this);
 
       // Assign each behavior an event to trigger off of
@@ -129,6 +122,29 @@ var app = app || {};
 
     updateModel: function (property, value) {
       this.model.updateModel(property, value);
+
+      debugger;
+
+      _.each(this.reverseRulesLookup[property], function (ruleName) {
+
+        var rule = this.rules[ruleName];
+        console.log('The following rule is going to be run: ' + rule.name);
+
+        var fact = new jsrules.RuleContext(rule.name + 'Fact');
+        _.each(rule.elements, function (element) {
+          if (element.type === 'jsrules.Proposition') {
+            fact.addProposition(element.name, this.model.attributes[element.name]);
+          } else if (element.type === 'jsrules.Variable') {
+            if (typeof this.model.attributes[element.name] != 'undefined') {
+              fact.addVariable(element.name, this.model.attributes[element.name]);
+            } else {
+              // Need to add placeholder for JSRules to be able to lookup rule
+              fact.addVariable(element.name, null);
+            }
+          }
+        }, this);
+        console.log(rule.evaluate(fact).value);
+      }, this);
 
       // Then trigger any ancillary inputs that need to be changed because of one thing or another...
       console.log(property + '-changed, ' + value);
