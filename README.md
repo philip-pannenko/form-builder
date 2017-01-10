@@ -22,7 +22,7 @@ Configuration Driven Form
  {
   label: 'First Name',
   placeholder: 'Joe',
-  domId: 'first-name',
+  id: 'first-name',
   dataModel: 'firstName',
   validationRules: [
     {method: Validation.notEmpty},
