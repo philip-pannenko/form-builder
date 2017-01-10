@@ -90,58 +90,59 @@
 //     });
 // };
 
-var Templates = {};
+var Type = {};
 
-Templates.Button = {
+Type.Button = {
   type: 'button',
   styleClass: null,
-  template: '<input id="<%= domId %>" type="button" ' +
+  template: '<input id="<%= id %>" type="button" ' +
   '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
   '<%= value ? " value=\'" + value + "\'" : "" %> >'
 };
-Templates.Label = {
+Type.Label = {
   type: 'label',
   styleClass: null,
   forAttr: null,
   label: null,
-  template: '<label id="<%= domId %>" ' +
+  template: '<label id="<%= id %>" ' +
   '<%= forAttr ? " for=\'" + forAttr + "\'": ""%>' +
   '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>> <%= label %> </label>'
 };
 
-Templates.Text = {
+Type.Text = {
   type: 'text',
   styleClass: null,
+  label: null,
   value: null,
   placeholder: null,
-  template: '<input id="<%= domId %>" type="text"' +
+  template: '<input id="<%= id %>" type="text"' +
   '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
   '<%= placeholder ? " placeholder=\'" + placeholder + "\'"  : ""%>' +
   '<%= value ? " value=\'" + value + "\'" : ""%>>'
 };
 
-Templates.Checkbox = {
+Type.Checkbox = {
   type: 'checkbox',
   styleClass: null,
   checked: null,
   value: null,
   label: null,
   template: '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
-  '  <input type="checkbox" id="<%= domId %>"' +
+  '  <input type="checkbox" id="<%= id %>"' +
   '  <%= checked ? " checked" : "" %>' +
   '  <%= value ? " value=\'" + value + "\'" : ""%>>' +
   '  <span class="label-body"><%= label %></span>' +
   '</label>'
 };
 
-Templates.Radio = {
+Type.Radio = {
   type: 'radio',
   styleClass: null,
   checked: null,
   value: null,
   label: null,
   template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
-  '  <input type="radio" id="<%= domId %>"' +
+  '  <input type="radio" id="<%= id %>"' +
   '  <%= dataModel ? " name=\'" + dataModel + "\'" : "" %>' +
   '  <%= checked ? " checked" : "" %>' +
   '  <%= value ? " value=\'" + value + "\'" : ""%>>' +
@@ -205,12 +206,9 @@ var Behaviors = {
 
 var FormSchema = [
   {
-    template: Templates.Label,
+    type: Type.Text,
+    id: 'name',
     label: 'Name',
-    forAttr: 'name'
-  }, {
-    template: Templates.Text,
-    domId: 'name',
     placeholder: 'Joe',
     dataModel: 'name',
     validationRules: [
@@ -218,46 +216,37 @@ var FormSchema = [
       {method: Validation.maxLength, options: {length: 10}}
     ]
   }, {
-    template: Templates.Button,
-    domId: 'button',
+    type: Type.Button,
+    id: 'button',
     value: 'Click Here'
   }, {
-    template: Templates.Label,
+    type: Type.Checkbox,
+    id: 'my-checkbox',
     label: 'Color',
-    forAttr: 'my-checkbox'
-  }, {
-    template: Templates.Checkbox,
-    domId: 'my-checkbox',
     dataModel: 'color',
-    list: ['Blue', 'Red', 'Green'],
-    checked: {Blue:true,Red:true}
+    list: [{label: 'Blue', value: 'blue'}, {label: 'Red', value: 'red'}, {label: 'Green', value: 'green'}],
+    value: ['blue', 'red']
   }, {
-    template: Templates.Label,
-    label: 'Show Dessert',
-    forAttr: 'one-checkbox'
-  }, {
-    template: Templates.Checkbox,
-    domId: 'one-checkbox',
+    type: Type.Checkbox,
+    id: 'one-checkbox',
+    label: 'Show Dessert Menu?',
     dataModel: 'showDesserts',
-    label: 'Yes please show the desserts',
-    value: false
+    list: [{label: 'Yes!', value: true}],
+    value: [true]
   }, {
-    template: Templates.Label,
+    type: Type.Radio,
+    id: 'my-radio',
     label: 'Dessert',
-    forAttr: 'my-radio'
-  }, {
-    template: Templates.Radio,
-    domId: 'my-radio',
     dataModel: 'dessert',
-    list: ['Cookies', 'Ice Cream'],
-    checked: 'Cookies'
+    list: [{label: 'Cookies', value: 'cookies'}, {label: 'Ice Cream', value: 'iceCream'}],
+    default: 'cookies'
   }, {
-    template: Templates.Label,
-    domId: 'iceCreamLogic',
-    label: 'Whip cream and cherries w/ the Ice cream is awesome'
+    type: Type.Label,
+    id: 'iceCreamLogic',
+    label: 'Whip cream and sprinkles w/ ice cream is awesome!'
   }, {
-    template: Templates.Label,
-    domId: 'cookieLogic',
+    type: Type.Label,
+    id: 'cookieLogic',
     label: 'Can\'t do it without milk'
   }
 ];
@@ -296,7 +285,26 @@ var BehaviorSchema = [{
     type: 'operator',
     element: 'AND'
   }]
-}];
+}, {
+  name: 'showDessertLogic',
+  target: 'my-radio',
+  type: 'isVisible',
+  rules: [{
+    type: 'proposition',
+    element: 'showDesserts',
+    value: true
+  }]
+}, {
+  name: 'showDessertLogic',
+  target: 'my-radio',
+  type: 'isVisible',
+  rules: [{
+    type: 'proposition',
+    element: 'showDesserts',
+    value: true
+  }]
+}
+];
 
 // var PAYLOAD = [
 //   {

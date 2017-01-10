@@ -15,27 +15,31 @@ var app = app || {};
     behaviors: {},
     rules: {},
     reverseRulesLookup: {},
+    uiBehaviors: {},
 
     initialize: function () {
 
-      this.model.set('domIds', {}, {silent: true});
-
       _.each(FormSchema, function (component) {
 
+        // Add a label because it's wordy to have to define a separate component otherwise in the configuration
+        if (!_.isUndefined(component.label) && component.type !== Type.Label) {
+          this.collection.add(
+            new app.Input({
+              type: Type.Label,
+              label: component.label,
+              forAttr: component.id
+            })
+          );
+        }
+
         if (component.dataModel) {
-          if (typeof component.value !== 'undefined') {
+          // Assign the values from the form to the form model
+          if (!_.isUndefined(component.value)) {
             this.model.set(component.dataModel, component.value);
-          } else if (component.checked) {
-            if (typeof component.checked === "string") {
-              this.model.set(component.dataModel, component.checked);
-            } else {
-              this.model.set(component.dataModel, _.keys(component.checked));
-            }
           } else {
             this.model.set(component.dataModel, null);
           }
         }
-        this.model.get('domIds')[component.domId] = true;
         this.collection.add(new app.Input(component));
 
       }, this);
@@ -61,7 +65,10 @@ var app = app || {};
           }
           this.reverseRulesLookup[rule.element].push(behavior.name);
         }, this);
+
+
         this.rules[behavior.name] = formRule;
+        this.uiBehaviors[behavior.name] = {id: behavior.target, value: null, type: behavior.type}
 
       }, this);
 
@@ -143,7 +150,15 @@ var app = app || {};
             }
           }
         }, this);
-        console.log(rule.evaluate(fact).value);
+
+        var uiBehavior = this.uiBehaviors[ruleName];
+        var ruleResult = rule.evaluate(fact).value;
+        if (uiBehavior.value !== ruleResult) {
+          uiBehavior.value = ruleResult;
+          var input = this.collection.get(uiBehavior.id);
+          input.set('isVisible', uiBehavior.value);
+        }
+
       }, this);
 
       // Then trigger any ancillary inputs that need to be changed because of one thing or another...

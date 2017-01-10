@@ -4,18 +4,30 @@ var app = app || {};
   app.Input = Backbone.Model.extend({
 
     initialize: function (options) {
-      if (!options.domId) {
-        this.attributes.domId = _.uniqueId('form-input-');
+      if (!options.id) {
+        this.attributes.id = _.uniqueId('form-id-');
       }
 
-      if (options.template) {
-        _.each(options.template, function (value, key) {
+      if (options.type) {
+        _.each(options.type, function (value, key) {
           if (!this.attributes[key]) {
             this.attributes[key] = value;
           }
         }, this);
-        this.attributes.template = options.template.template;
+        this.attributes.template = options.type.template;
       }
+
+      if(this.attributes.type === Type.Checkbox) {
+        this.attributes.checked = {};
+        _.each(this.attributes.value, function(value) {
+          this.attributes.checked[value] = true;
+        }, this);
+      }
+
+      if(this.attributes.type === Type.Radio) {
+        this.attributes.value = options.default;
+      }
+
       this.on('invalid', function (model, error) {
         this.set('error', error);
       });
