@@ -97,7 +97,7 @@ Type.Button = {
   styleClass: null,
   template: '<input id="<%= id %>" type="button" ' +
   '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
-  '<%= value ? " value=\'" + value + "\'" : "" %> >'
+  '<%= !_.isUndefined(value) ? " value=\'" + value + "\'" : "" %> >'
 };
 Type.Label = {
   type: 'label',
@@ -112,26 +112,25 @@ Type.Label = {
 Type.Text = {
   type: 'text',
   styleClass: null,
-  label: null,
   value: null,
   placeholder: null,
   template: '<input id="<%= id %>" type="text"' +
   '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
   '<%= placeholder ? " placeholder=\'" + placeholder + "\'"  : ""%>' +
-  '<%= value ? " value=\'" + value + "\'" : ""%>>'
+  '<%= !_.isUndefined(value) && !_.isNull(value) ? " value=\'" + value + "\'" : ""%>>'
 };
 
 Type.Checkbox = {
   type: 'checkbox',
   styleClass: null,
   checked: null,
-  value: null,
-  label: null,
-  template: '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
+  option: null,
+  template:
+  '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
   '  <input type="checkbox" id="<%= id %>"' +
   '  <%= checked ? " checked" : "" %>' +
-  '  <%= value ? " value=\'" + value + "\'" : ""%>>' +
-  '  <span class="label-body"><%= label %></span>' +
+  '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
+  '  <span class="label-body"><%= optionLabel %></span>' +
   '</label>'
 };
 
@@ -139,14 +138,14 @@ Type.Radio = {
   type: 'radio',
   styleClass: null,
   checked: null,
-  value: null,
-  label: null,
-  template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
+  option: null,
+  template:
+  '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
   '  <input type="radio" id="<%= id %>"' +
   '  <%= dataModel ? " name=\'" + dataModel + "\'" : "" %>' +
   '  <%= checked ? " checked" : "" %>' +
-  '  <%= value ? " value=\'" + value + "\'" : ""%>>' +
-  '  <span class="label-body"><%= label %></span>' +
+  '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
+  '  <span class="label-body"><%= optionLabel %></span>' +
   '</label>'
 };
 
@@ -225,14 +224,14 @@ var FormSchema = [
     label: 'Color',
     dataModel: 'color',
     list: [{label: 'Blue', value: 'blue'}, {label: 'Red', value: 'red'}, {label: 'Green', value: 'green'}],
-    value: ['blue', 'red']
+    default: ['blue', 'red']
   }, {
-    type: Type.Checkbox,
+    type: Type.Radio,
     id: 'one-checkbox',
     label: 'Show Dessert Menu?',
     dataModel: 'showDesserts',
-    list: [{label: 'Yes!', value: true}],
-    value: [true]
+    list: [{label: 'Yes!', value: true}, {label: 'No thanks.', value: false}],
+    default: true
   }, {
     type: Type.Radio,
     id: 'my-radio',
@@ -263,7 +262,7 @@ var BehaviorSchema = [{
     type: 'variable',
     element: 'dessert',
     operator: 'EQUALS',
-    value: 'Ice Cream'
+    value: 'iceCream'
   }, {
     type: 'operator',
     element: 'AND'
@@ -280,7 +279,7 @@ var BehaviorSchema = [{
     type: 'variable',
     element: 'dessert',
     operator: 'EQUALS',
-    value: 'Cookies'
+    value: 'cookies'
   }, {
     type: 'operator',
     element: 'AND'
@@ -294,17 +293,7 @@ var BehaviorSchema = [{
     element: 'showDesserts',
     value: true
   }]
-}, {
-  name: 'showDessertLogic',
-  target: 'my-radio',
-  type: 'isVisible',
-  rules: [{
-    type: 'proposition',
-    element: 'showDesserts',
-    value: true
-  }]
-}
-];
+}];
 
 // var PAYLOAD = [
 //   {

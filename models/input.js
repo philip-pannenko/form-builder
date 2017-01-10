@@ -17,9 +17,20 @@ var app = app || {};
         this.attributes.template = options.type.template;
       }
 
+      // Add a label because it's wordy to have to define a separate component otherwise in the configuration
+      if (!_.isUndefined(options.label) && options.type !== Type.Label) {
+        this.attributes.labelTemplate = {
+            type: Type.Label,
+            label: options.label,
+            forAttr: options.id,
+            id: _.uniqueId('form-id-'),
+            styleClass: null
+          };
+      }
+
       if(this.attributes.type === Type.Checkbox) {
         this.attributes.checked = {};
-        _.each(this.attributes.value, function(value) {
+        _.each(this.attributes.default, function(value) {
           this.attributes.checked[value] = true;
         }, this);
       }

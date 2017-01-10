@@ -19,6 +19,9 @@ var app = app || {};
 
       this.template = _.template(this.model.attributes.template);
 
+      if(this.model.attributes.labelTemplate) {
+        this.labelTemplate = _.template(this.model.attributes.labelTemplate.type.template);
+      }
       // Bind to the model when one of the three events are detected
       this.model.on('change:value', this.render, this);
       this.model.on('change:isVisible', this.render, this);
@@ -49,11 +52,12 @@ var app = app || {};
       }
 
       if (this.model.attributes.type === Type.Checkbox || this.model.attributes.type === Type.Radio) {
+        debugger;
         this.$el.empty();
         _.each(this.model.attributes.list, function (item, i) {
           var option = this.model.toJSON();
-          option.value = item.value;
-          option.label = item.label;
+          option.optionValue = item.value;
+          option.optionLabel = item.label;
 
           if (this.model.attributes.type === Type.Checkbox) {
             option.checked = this.model.attributes.checked[item.value];
@@ -67,8 +71,13 @@ var app = app || {};
         this.$el.html(this.template(this.model.toJSON()));
       }
 
-      if (!_.isUndefined(this.model.attributes.isReadOnly) && !this.model.attributes.isReadOnly) {
-        this.$el.prop('readonly', this.model.attributes.isReadOnly);
+      // if (!_.isUndefined(this.model.attributes.isReadOnly) && !this.model.attributes.isReadOnly) {
+      //   this.$el.prop('readonly', this.model.attributes.isReadOnly);
+      // }
+
+      // If validation errors were identified, add that template
+      if (this.model.attributes.labelTemplate) {
+        this.$el.prepend(this.labelTemplate(this.model.attributes.labelTemplate)); // = _.template(this.model.attributes.labelTemplate.type.template);
       }
 
       // If validation errors were identified, add that template
@@ -101,6 +110,14 @@ var app = app || {};
         } else {
           delete this.model.attributes.checked[value];
         }
+        value = _.keys(this.model.attributes.checked);
+      }
+
+      // Sanitize booleans
+      if(value === 'true') {
+        value = true;
+      } else if (value === 'false') {
+        value = false;
       }
 
       this.model.set('value', value, {silent: true}); // silent because we don't want to re-render DOM if it's not valid
@@ -108,22 +125,10 @@ var app = app || {};
       this.model.isValid(); // validate the value is accurate
       this.render(); // only after it's accurate, repaint the dom
 
-
       // After we know this input field is good, let the parent form update itself with this data
-      console.log('model-changed, ' + this.model.attributes.dataModel + ', ' + value);
+      console.log('model-changed, ' + this.model.attributes.dataModel + ', (' + value + ')');
       Backbone.trigger('model-changed', this.model.attributes.dataModel, value);
 
-
-      // // Regardless if the value changed, if this is a trigger based action, fire off the destination
-      // //  of the triggered action with the associated property
-      // if (this.model.attributes.uiAttribute) {
-      //   var dotIndex = this.model.attributes.dataModel.indexOf('.');
-      //   var dataModel = this.model.attributes.dataModel.substr(0, dotIndex);
-      //   var dataModelProperty = this.model.attributes.dataModel.substr(dotIndex + 1);
-      //   // Then trigger any ancillary inputs that need to be changed because of one thing or another...
-      //   console.log(dataModel + '-changed (' + dataModelProperty + ')[' + this.model.attributes.value + ']');
-      //   Backbone.trigger(dataModel + '-changed', dataModelProperty, this.model.attributes.value);
-      // }
     }
 
 
