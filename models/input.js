@@ -17,6 +17,7 @@ var app = app || {};
         this.attributes.template = options.type.template;
       }
 
+      // TODO: clean up the way labels are created by default
       // Add a label because it's wordy to have to define a separate component otherwise in the configuration
       if (!_.isUndefined(options.label) && options.type !== Type.Label) {
         this.attributes.labelTemplate = {

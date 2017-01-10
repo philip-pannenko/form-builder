@@ -90,6 +90,7 @@
 //     });
 // };
 
+// TODO add a template that has an Add Party / Remove Party like behavior
 var Type = {};
 
 Type.Button = {
@@ -125,8 +126,7 @@ Type.Checkbox = {
   styleClass: null,
   checked: null,
   option: null,
-  template:
-  '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
+  template: '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
   '  <input type="checkbox" id="<%= id %>"' +
   '  <%= checked ? " checked" : "" %>' +
   '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
@@ -139,8 +139,7 @@ Type.Radio = {
   styleClass: null,
   checked: null,
   option: null,
-  template:
-  '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
+  template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
   '  <input type="radio" id="<%= id %>"' +
   '  <%= dataModel ? " name=\'" + dataModel + "\'" : "" %>' +
   '  <%= checked ? " checked" : "" %>' +
@@ -148,6 +147,9 @@ Type.Radio = {
   '  <span class="label-body"><%= optionLabel %></span>' +
   '</label>'
 };
+
+
+
 
 var Validation = {
 
@@ -172,37 +174,6 @@ var Validation = {
   }
 };
 
-var Behaviors = {
-
-  toggleVisibility: function (model, datas) {
-    var thisModel = model;
-    var isVisible = true;
-    _.each(datas, function (data) {
-      if (data.expected != data.actual) {
-        isVisible = false;
-      }
-    });
-    if (model.attributes.isVisible != isVisible) {
-      model.set('isVisible', isVisible);
-      model.set('value', null);
-      Backbone.trigger('model-changed', model.attributes.dataModel, null);
-    }
-  },
-
-  toggleReadOnly: function (model, datas) {
-    var thisModel = model;
-    var isReadOnly = false;
-    _.each(datas, function (data) {
-      if (data.expected != data.actual) {
-        isReadOnly = true;
-      }
-    });
-    if (model.attributes.isReadOnly != isReadOnly) {
-      model.set('isReadOnly', isReadOnly);
-    }
-  }
-};
-
 var FormSchema = [
   {
     type: Type.Text,
@@ -218,6 +189,16 @@ var FormSchema = [
     type: Type.Button,
     id: 'button',
     value: 'Click Here'
+  }, {
+    type: Type.Text,
+    id: 'name-2',
+    label: 'Name',
+    placeholder: 'Joe',
+    dataModel: 'name',
+    validationRules: [
+      {method: Validation.notEmpty},
+      {method: Validation.maxLength, options: {length: 10}}
+    ]
   }, {
     type: Type.Checkbox,
     id: 'my-checkbox',
@@ -295,136 +276,21 @@ var BehaviorSchema = [{
   }]
 }];
 
-// var PAYLOAD = [
-//   {
-//     label: 'Party Type',
-//     type: 'radio',
-//     domId: 'partyType',
-//     dataModel: 'partyType',
-//     value: 'individual',
-//     inputs: [{
-//       domId: 'party-type-business',
-//       value: 'business',
-//       type: 'radio',
-//       dataModel: 'partyType',
-//       label: 'Business'
-//     }, {
-//       domId: 'party-type-individual',
-//       value: 'individual',
-//       type: 'radio',
-//       dataModel: 'partyType',
-//       label: 'Individual'
-//     }]
-//   }, {
-//     type: 'checkbox',
-//     domId: 'show-middle-name',
-//     dataModel: 'middleName.isVisible',
-//     value: true,
-//     inputs: [{
-//       domId: 'show-middle-name-is-visible',
-//       value: true,
-//       type: 'checkbox',
-//       dataModel: 'middleName.isVisible',
-//       label: 'Show Middle Name'
-//     }],
-//     behaviors: [{
-//       method: Behaviors.toggleVisibility,
-//       conditions: [{
-//         dataModel: 'partyType',
-//         value: 'individual'
-//       }]
-//     }]
-//   }, {
-//     label: 'Business Name',
-//     placeholder: 'Joe\'s Coffee',
-//     domId: 'business-name',
-//     dataModel: 'businessName',
-//     validationRules: [
-//       {method: Validation.notEmpty},
-//       {method: Validation.maxLength, options: {length: 10}}
-//     ],
-//     behaviors: [{
-//       method: Behaviors.toggleVisibility,
-//       conditions: [{
-//         dataModel: 'partyType',
-//         value: 'business'
-//       }]
-//     }]
-//   }, {
-//     label: 'First Name',
-//     placeholder: 'Joe',
-//     domId: 'first-name',
-//     dataModel: 'firstName',
-//     validationRules: [
-//       {method: Validation.notEmpty},
-//       {method: Validation.maxLength, options: {length: 10}}
-//     ],
-//     behaviors: [{
-//       method: Behaviors.toggleVisibility,
-//       conditions: [{
-//         dataModel: 'partyType',
-//         value: 'individual'
-//       }]
-//     }]
-//   }, {
-//     label: 'Middle Name',
-//     placeholder: 'Bob',
-//     domId: 'middle-name',
-//     dataModel: 'middleName',
-//     validationRules: [
-//       {method: Validation.maxLength, options: {length: 5}}
-//     ],
-//     behaviors: [{
-//       method: Behaviors.toggleVisibility,
-//       conditions: [{
-//         dataModel: 'partyType',
-//         value: 'individual'
-//       }, {
-//         dataModel: 'middleName.isVisible',
-//         isVisible: true
-//       }]
-//     }]
-//   }, {
-//     label: 'Last Name',
-//     placeholder: 'Smith',
-//     domId: 'last-name',
-//     dataModel: 'lastName',
-//     validationRules: [
-//       {method: Validation.notEmpty},
-//       {method: Validation.maxLength, options: {length: 20}}
-//     ],
-//     behaviors: [{
-//       method: Behaviors.toggleVisibility,
-//       conditions: [{
-//         dataModel: 'partyType',
-//         value: 'individual'
-//       }]
-//     }]
-//   }, {
-//     label: 'Email',
-//     placeholder: 'joe.smith@domain.com',
-//     domId: 'email',
-//     type: 'email',
-//     dataModel: 'email',
-//     validationRules: [
-//       {method: Validation.emailAddress}
-//     ]
-//   }, {
-//     type: 'button',
-//     domId: 'make-email-read-only',
-//     dataModel: 'email.isReadOnly',
-//     value: true,
-//     label: 'Make E-Mail Read-Only'
-//   }, {
-//     type: 'button',
-//     domId: 'make-email-editable',
-//     dataModel: 'email.isReadOnly',
-//     value: false,
-//     label: 'Make E-Mail Editable'
-//   }, {
-//     type: 'button',
-//     domId: 'make-email-toggle-editability',
-//     dataModel: 'email.isReadOnly',
-//     value: 'toggle',
-//     label: 'Toggle E-Mail Read-Only'
-//   }];
+var BehaviorType = {};
+BehaviorType.Proposition = 'proposition';
+BehaviorType.Operator = 'operator';
+BehaviorType.Variable = 'variable';
+BehaviorType.Rule = 'rule';
+
+var Operator = {};
+Operator.AND = 'AND';
+Operator.OR = 'OR';
+Operator.XOR = 'XOR';
+Operator.NOT = 'NOT';
+Operator.EQUAL_TO = 'EQUALTO';
+Operator.NOT_EQUAL_TO = 'NOTEQUALTO';
+Operator.LESS_THAN = 'LESSTHAN';
+Operator.GREATER_THAN = 'GREATERTHAN';
+Operator.LESS_THAN_OR_EQUAL_TO = 'LESSTHANOREQUALTO';
+Operator.GREATER_THAN_OR_EQUAL_TO = 'GREATERTHANOREQUALTO';
+Operator.INCLUDES = 'INCLUDES';

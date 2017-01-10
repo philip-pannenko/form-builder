@@ -12,13 +12,15 @@ var app = app || {};
     template: _.template('<h1>Generated Form</h1><form id="form"></form><input id="submit" class="button-primary" type="submit" value="submit input">'),
     model: app.Form,
     inputs: app.Inputs,
+
+    // TODO: These three variables are begging for a better name
     rules: {},
     findRuleNameByDataModel: {},
-
     uiBehaviors: {},
 
     initialize: function () {
 
+      // TODO: Move a number of the attributes from this view into the model
       _.each(FormSchema, function (component) {
 
         if (component.dataModel) {
@@ -36,6 +38,7 @@ var app = app || {};
       _.each(BehaviorSchema, function (behavior) {
         var formRule = new jsrules.Rule(behavior.name);
 
+        // TODO Add static references instead of string comparisons
         _.each(behavior.rules, function (rule, i) {
 
           if (rule.type === 'proposition') {
@@ -43,8 +46,10 @@ var app = app || {};
           } else if (rule.type === 'variable') {
             formRule.addVariable(rule.element + 'expected', rule.value);
             formRule.addVariable(rule.element, null); // actual
+            // TODO: Expand this to accept a number of additional Operators
             formRule.addOperator(jsrules.Operator.EQUAL_TO);
           } else if (rule.type === 'operator') {
+            // TODO: Expand this to accept a number of additional Operators
             formRule.addOperator(jsrules.Operator.AND);
           }
 
@@ -58,18 +63,17 @@ var app = app || {};
           }
         }, this);
 
-
         // Add lookup of rule by behavior name
         this.rules[behavior.name] = formRule;
 
         // Add reverse lookup of
-        this.uiBehaviors[behavior.name] = {id: behavior.target, value: null, type: behavior.type}
+        this.uiBehaviors[behavior.name] = {id: behavior.target, value: true, type: behavior.type}
 
       }, this);
 
       // Any time an Input model is changed, update the Form model
       Backbone.on('model-changed', this.updateModel, this);
-      //
+
       // Build all of the Inputs onto the form separate from one another
       this.render();
 
@@ -80,7 +84,7 @@ var app = app || {};
 
     },
 
-    runFormRules: function(property) {
+    runFormRules: function (property) {
       _.each(this.findRuleNameByDataModel[property], function (ruleName) {
 
         var rule = this.rules[ruleName];
@@ -99,12 +103,19 @@ var app = app || {};
           }
         }, this);
 
+        // TODO: Clean this up and add other ui properties aside from isVisible (ie: readonly?)
         var uiBehavior = this.uiBehaviors[ruleName];
         var ruleResult = rule.evaluate(fact).value;
         if (uiBehavior.value !== ruleResult) {
+          console.log('ruleName' + ruleName + ', uiBehavior:' + uiBehavior.value + ', ruleResult:' + ruleResult + ', ');
           uiBehavior.value = ruleResult;
           var input = this.collection.get(uiBehavior.id);
-          input.set('isVisible', uiBehavior.value);
+          var properties = uiBehavior.value ? {isVisible: uiBehavior.value} : {
+              isVisible: uiBehavior.value,
+              value: null
+            };
+          input.set(properties);
+
         }
 
       }, this);
@@ -113,6 +124,8 @@ var app = app || {};
     updateModel: function (property, value) {
       this.model.updateModel(property, value);
       this.runFormRules(property, value);
+
+      // TODO: After a model is updated, make sure self components are listening to change in case multiple components are bound to the same model
 
       // Then trigger any ancillary inputs that need to be changed because of one thing or another...
       console.log(property + '-changed, (' + value + ')');
