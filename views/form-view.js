@@ -11,17 +11,13 @@ var app = app || {};
 
     template: _.template('<h1>Generated Form</h1><form id="form"></form><input id="submit" class="button-primary" type="submit" value="submit input">'),
     model: app.Form,
-    inputs: app.Inputs,
-
-    // TODO: These three variables are begging for a better name
-    rules: {},
-    findRuleNameByDataModel: {},
-    uiBehaviors: {},
 
     initialize: function () {
 
+      this.model = new app.Form();
+
       // TODO: Move a number of the attributes from this view into the model
-      _.each(FormSchema, function (component) {
+      _.each(app.FormSchema, function (component) {
 
         if (component.dataModel) {
           // Assign the values from the form to the form model
@@ -31,11 +27,11 @@ var app = app || {};
             this.model.set(component.dataModel, null);
           }
         }
-        this.collection.add(new app.Input(component));
+        this.model.attributes.elements.add(new app.Element(component));
 
       }, this);
 
-      _.each(BehaviorSchema, function (behavior) {
+      _.each(app.BehaviorSchema, function (behavior) {
         var formRule = new jsrules.Rule(behavior.name);
 
         // TODO Add static references instead of string comparisons
@@ -55,39 +51,39 @@ var app = app || {};
 
           if (rule.type !== 'operator') {
             // Reverse lookup rules by dataModel so that all behaviors can be run if the dataModel is changed
-            if (!this.findRuleNameByDataModel[rule.element]) {
+            if (!this.model.attributes.findRuleNameByDataModel[rule.element]) {
               console.log(rule.element);
-              this.findRuleNameByDataModel[rule.element] = [];
+              this.model.attributes.findRuleNameByDataModel[rule.element] = [];
             }
-            this.findRuleNameByDataModel[rule.element].push(behavior.name);
+            this.model.attributes.findRuleNameByDataModel[rule.element].push(behavior.name);
           }
         }, this);
 
         // Add lookup of rule by behavior name
-        this.rules[behavior.name] = formRule;
+        this.model.attributes.rules[behavior.name] = formRule;
 
         // Add reverse lookup of
-        this.uiBehaviors[behavior.name] = {id: behavior.target, value: true, type: behavior.type}
+        this.model.attributes.uiBehaviors[behavior.name] = {id: behavior.target, value: true, type: behavior.type}
 
       }, this);
 
-      // Any time an Input model is changed, update the Form model
+      // Any time an Element model is changed, update the Form model
       Backbone.on('model-changed', this.updateModel, this);
 
-      // Build all of the Inputs onto the form separate from one another
+      // Build all of the Elements onto the form separate from one another
       this.render();
 
       // Run all of the behaviors to render actual interacted form
-      _.each(this.findRuleNameByDataModel, function (ruleName, dataModel) {
+      _.each(this.model.attributes.findRuleNameByDataModel, function (ruleName, dataModel) {
         this.runFormRules(dataModel);
       }, this);
 
     },
 
     runFormRules: function (property) {
-      _.each(this.findRuleNameByDataModel[property], function (ruleName) {
+      _.each(this.model.attributes.findRuleNameByDataModel[property], function (ruleName) {
 
-        var rule = this.rules[ruleName];
+        var rule = this.model.attributes.rules[ruleName];
         console.log('The following rule is going to be run: ' + rule.name);
 
         var fact = new jsrules.RuleContext(rule.name + 'Fact');
@@ -104,17 +100,17 @@ var app = app || {};
         }, this);
 
         // TODO: Clean this up and add other ui properties aside from isVisible (ie: readonly?)
-        var uiBehavior = this.uiBehaviors[ruleName];
+        var uiBehavior = this.model.attributes.uiBehaviors[ruleName];
         var ruleResult = rule.evaluate(fact).value;
         if (uiBehavior.value !== ruleResult) {
           console.log('ruleName' + ruleName + ', uiBehavior:' + uiBehavior.value + ', ruleResult:' + ruleResult + ', ');
           uiBehavior.value = ruleResult;
-          var input = this.collection.get(uiBehavior.id);
+          var element = this.model.attributes.elements.get(uiBehavior.id);
           var properties = uiBehavior.value ? {isVisible: uiBehavior.value} : {
               isVisible: uiBehavior.value,
               value: null
             };
-          input.set(properties);
+          element.set(properties);
 
         }
 
@@ -127,7 +123,7 @@ var app = app || {};
 
       // TODO: After a model is updated, make sure self components are listening to change in case multiple components are bound to the same model
 
-      // Then trigger any ancillary inputs that need to be changed because of one thing or another...
+      // Then trigger any ancillary elements that need to be changed because of one thing or another...
       console.log(property + '-changed, (' + value + ')');
       Backbone.trigger(property + '-changed', property, value);
 
@@ -140,8 +136,8 @@ var app = app || {};
     render: function () {
       console.log('rendering FormView');
       this.$el.append(this.template());
-      this.collection.each(function (input) {
-        this.$('#form').append(new app.InputView({model: input}).render().$el);
+      this.model.attributes.elements.each(function (element) {
+        this.$('#form').append(new app.ElementView({model: element}).render().$el);
       }, this);
 
     }

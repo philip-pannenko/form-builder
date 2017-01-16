@@ -1,7 +1,7 @@
 var app = app || {};
 (function () {
   'use strict';
-  app.Input = Backbone.Model.extend({
+  app.Element = Backbone.Model.extend({
 
     initialize: function (options) {
       if (!options.id) {
@@ -19,9 +19,9 @@ var app = app || {};
 
       // TODO: clean up the way labels are created by default
       // Add a label because it's wordy to have to define a separate component otherwise in the configuration
-      if (!_.isUndefined(options.label) && options.type !== Type.Label) {
+      if (!_.isUndefined(options.label) && options.type !== app.Type.Label) {
         this.attributes.labelTemplate = {
-            type: Type.Label,
+            type: app.Type.Label,
             label: options.label,
             forAttr: options.id,
             id: _.uniqueId('form-id-'),
@@ -29,14 +29,14 @@ var app = app || {};
           };
       }
 
-      if(this.attributes.type === Type.Checkbox) {
+      if(this.attributes.type === app.Type.Checkbox) {
         this.attributes.checked = {};
         _.each(this.attributes.default, function(value) {
           this.attributes.checked[value] = true;
         }, this);
       }
 
-      if(this.attributes.type === Type.Radio) {
+      if(this.attributes.type === app.Type.Radio) {
         this.attributes.value = options.default;
       }
 
@@ -49,7 +49,7 @@ var app = app || {};
       var errors = [];
 
       // Go through each of the validation rules that are contextually specific to
-      //  just this one Input
+      //  just this one Element
       _.each(this.attributes.validationRules, function (validation) {
         var error = (validation.method(attrs.value, validation.options));
         if (error) errors.push(error);
