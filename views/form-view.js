@@ -83,11 +83,19 @@ var app = app || {};
       this.$el.append(
         _.template(
           '<h1>Generated Form</h1>' +
-          '<form id="form"></form>' +
-          '<hr><input id="submit" class="button-primary" type="submit" value="submit input">' +
-          '<h5> Real-time Form Model Results </h5>' +
-          '<table id="results" class="u-full-width"><thead><tr><th>Model</th><th>Value(s)</th></tr></thead><tbody></table>'));
+          '<hr><form id="form"></form>' +
+          '<input id="submit" class="button-primary" type="submit" value="Submit Form">' +
+          '<hr><h5> Live Form Model </h5>' +
+          '<table id="results" class="u-full-width"><thead><tr><th>Model</th><th>Value(s)</th></tr></thead><tbody></table>' +
+          '<hr><h5> Behaviors: Elements Affected/Driven-By </h5>' +
+          '<table id="driven" class="u-full-width"><thead><tr><th>Element DomId</th><th>Rule</th><th>Affected by (Model)</th><th>Affected by (DomID)</th></tr></thead><tbody></table>'
+          // '<hr><h5> Behaviors: Elements Affect/Drive </h5>' +
+          // '<table id="driving" class="u-full-width"><thead><tr><th>Element DomId</th><th>Rule</th><th>Affects (Model)</th><th>Affects (DomId)</th></tr></thead><tbody></table>'
+        ));
+
       this.$results = $('#results tbody');
+      this.$driven = $('#driven tbody');
+      // this.$driving = $('#driving tbody');
 
       this.model.attributes.elements.each(function (element) {
         this.$('#form').append(new app.ElementView({model: element}).render().$el);
@@ -100,7 +108,96 @@ var app = app || {};
 
       this.render();
 
+      this.drivenRules();
+
+      // TODO: Render remaining generated driving behavior model
+      // this.drivingRules();
+
+      debugger;
+
     },
+
+    drivenRules: function () {
+
+      var drivenRules = [];
+
+      _.each(this.model.attributes.rules, function (rule) {
+        var drivenRule = {
+          targetDomId: rule.target,
+          rule: rule.name,
+          models: [],
+          domIds: []
+        };
+
+        _.each(rule.elements, function (element) {
+          if ((element.type === 'jsrules.Proposition' || element.type === 'jsrules.Variable') && !element.name.includes('expected-')) {
+            drivenRule.models.push(element.name);
+          }
+        }, this);
+
+        _.each( drivenRule.models, function (value) {
+          drivenRule.domIds.push(this.model.attributes.modelDomIds[value]);
+        }, this);
+
+        drivenRules.push(drivenRule);
+      }, this);
+
+      var template = _.template('<tr><td><%= targetDomId %></td><td><%= rule %></td><td><%= model %></td><td><%= domId %></td></tr>');
+      this.$driven.empty();
+
+      _.each(drivenRules, function (value) {
+
+        this.$driven.append(template({
+          targetDomId: value.targetDomId,
+          rule: value.rule,
+          model: _.values(value.models).toString(),
+          domId: _.values(value.domIds).toString()
+        }));
+
+      }, this);
+
+
+    },
+
+    // drivingRules: function () {
+    //
+    //   var drivingRules = [];
+    //
+    //   _.each(this.model.attributes.modelDomIds, function (domIds, modelName) {
+    //     var drivingRule = {
+    //       model: modelName,
+    //       rule: 'TBD',
+    //       domIds: domIds
+    //     };
+    //     // _.each(rule.elements, function (element) {
+    //     //   if ((element.type === 'jsrules.Proposition' || element.type === 'jsrules.Variable') && !element.name.includes('expected-')) {
+    //     //     drivenRule.models.push(element.name);
+    //     //   }
+    //     // }, this);
+    //
+    //     drivingRules.push(drivingRule);
+    //   }, this);
+    //
+    //   var template = _.template('<tr><td><%= model %></td><td><%= rule %></td><td><%= domId %></td><td></td></tr>');
+    //   this.$driving.empty();
+    //
+    //   _.each(drivingRules, function (value) {
+    //
+    //     if (_.isObject(value.models)) {
+    //       this.$driving.append(template({
+    //         model: value.model,
+    //         rule: value.rule,
+    //         domId: _.values(value.domIds).toString()
+    //       }));
+    //     } else if (_.isArray(value.models)) {
+    //       this.$driving.append(template({model: value.model, rule: value.rule, domId: value.domIds.toString()}));
+    //     } else {
+    //       this.$driving.append(template({model: value.model, rule: value.rule, domId: value.domIds}));
+    //     }
+    //   }, this);
+    //
+    //
+    // },
 
     runFormRules: function (model) {
 
@@ -168,7 +265,6 @@ var app = app || {};
       console.log(this.model.attributes.model);
     },
 
-    // TODO: Render the generated behavior model attributes to demonstrate how they look generated
     render: function () {
 
       var template = _.template('<tr><td><%= model %></td><td><%= value %></td></tr>');

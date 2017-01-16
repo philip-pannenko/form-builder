@@ -77,10 +77,6 @@ var app = app || {};
         this.$el.html(this.template(this.model.toJSON()));
       }
 
-      if (!_.isUndefined(this.model.attributes.isReadOnly) && !this.model.attributes.isReadOnly) {
-        this.$el.prop('readonly', this.model.attributes.isReadOnly);
-      }
-
       if (this.model.attributes.labelTemplate) {
         this.$el.prepend(this.labelTemplate(this.model.attributes.labelTemplate)); // = _.template(this.model.attributes.labelTemplate.type.template);
       }

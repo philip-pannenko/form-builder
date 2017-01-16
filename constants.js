@@ -95,13 +95,13 @@ var app = app || {};
 //     });
 // };
 
-  // TODO: Add a template that has an Add Party / Remove Party like behavior
   app.Type = {
     Button: {
       type: 'button',
       styleClass: null,
       template: '<input id="<%= id %>" type="button" ' +
       '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
+      '<%= isReadOnly? " readonly" : "" %>' +
       '<%= !_.isUndefined(value) ? " value=\'" + value + "\'" : "" %> >'
     },
     Label: {
@@ -120,6 +120,7 @@ var app = app || {};
       placeholder: null,
       template: '<input id="<%= id %>" type="text"' +
       '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
+      '<%= isReadOnly? " readonly" : "" %>' +
       '<%= placeholder ? " placeholder=\'" + placeholder + "\'"  : ""%>' +
       '<%= !_.isUndefined(value) && !_.isNull(value) ? " value=\'" + value + "\'" : ""%>>'
     },
@@ -131,6 +132,7 @@ var app = app || {};
       template: '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
       '  <input type="checkbox" id="<%= id %>"' +
       '  <%= checked ? " checked" : "" %>' +
+      '  <%= isReadOnly? " readonly" : "" %>' +
       '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
       '  <span class="label-body"><%= optionLabel %></span>' +
       '</label>'
@@ -143,6 +145,7 @@ var app = app || {};
       template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
       '  <input type="radio" id="<%= id %>"' +
       '  <%= model ? " name=\'" + model + "\'" : "" %>' +
+      '  <%= isReadOnly? " readonly" : "" %>' +
       '  <%= checked ? " checked" : "" %>' +
       '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
       '  <span class="label-body"><%= optionLabel %></span>' +
@@ -170,8 +173,6 @@ var app = app || {};
     }
   };
 
-  // TODO: Add readonly example
-  // TODO: Add button functionality example
   app.FormSchema = [{
     type: app.Type.Text,
     id: 'name',
@@ -183,13 +184,9 @@ var app = app || {};
       {method: app.Validation.maxLength, options: {length: 10}}
     ]
   }, {
-    type: app.Type.Button,
-    id: 'button',
-    value: 'Click Here'
-  }, {
     type: app.Type.Text,
     id: 'another-name',
-    label: 'Another Name Input Field Bound to Same Model',
+    label: 'Another Name Input Field Bound to Same Model but w/ Different Validations',
     placeholder: 'Jane',
     model: 'name',
     validationRules: [
@@ -197,6 +194,20 @@ var app = app || {};
       {method: app.Validation.maxLength, options: {length: 15}}
     ]
   }, {
+    type: app.Type.Text,
+    id: 'read-only-name',
+    label: 'Read-Only Bound to Name Same Model as Above 2 Inputs',
+    placeholder: 'Read-Only Placeholder',
+    model: 'name',
+    isReadOnly: true
+  },
+  // TODO: Add button functionality example
+  // {
+  //   type: app.Type.Button,
+  //   id: 'button',
+  //   value: 'Click Here to Clear Name Model'
+  // },
+  {
     type: app.Type.Checkbox,
     id: 'my-checkbox',
     label: 'Color',
@@ -205,25 +216,25 @@ var app = app || {};
     default: ['blue', 'red']
   }, {
     type: app.Type.Radio,
-    id: 'one-checkbox',
+    id: 'show-dessert-radio',
     label: 'Show Dessert Menu?',
-    model: 'showDesserts',
+    model: 'isDessert',
     list: [{label: 'Yes!', value: true}, {label: 'No thanks.', value: false}],
     default: true
   }, {
     type: app.Type.Radio,
-    id: 'my-radio',
+    id: 'choose-dessert-radio',
     label: 'Dessert',
     model: 'dessert',
     list: [{label: 'Cookies', value: 'cookies'}, {label: 'Ice Cream', value: 'iceCream'}],
     default: 'cookies'
   }, {
     type: app.Type.Label,
-    id: 'iceCreamLogic',
+    id: 'ice-cream-label',
     label: 'Whip cream and sprinkles w/ ice cream is awesome!'
   }, {
     type: app.Type.Label,
-    id: 'cookieLogic',
+    id: 'cookie-label',
     label: 'Can\'t do it without milk'
   }];
 
@@ -249,12 +260,12 @@ var app = app || {};
   };
 
   app.RulesSchema = [{
-    name: 'showIceCreamLogic',
-    target: 'iceCreamLogic',
+    name: 'showIceCreamLabel',
+    target: 'ice-cream-label',
     targetAttribute: 'isVisible',
     rules: [{
       type: app.BehaviorType.Proposition,
-      model: 'showDesserts',
+      model: 'isDessert',
       value: true
     }, {
       type: app.BehaviorType.Variable,
@@ -266,12 +277,12 @@ var app = app || {};
       operator: app.Operator.AND
     }]
   }, {
-    name: 'showCookieLogic',
-    target: 'cookieLogic',
+    name: 'showCookieLabel',
+    target: 'cookie-label',
     targetAttribute: 'isVisible',
     rules: [{
       type: app.BehaviorType.Proposition,
-      model: 'showDesserts',
+      model: 'isDessert',
       value: true
     }, {
       type: app.BehaviorType.Variable,
@@ -283,12 +294,12 @@ var app = app || {};
       operator: app.Operator.AND
     }]
   }, {
-    name: 'showDessertLogic',
-    target: 'my-radio',
+    name: 'showDessertOptions',
+    target: 'choose-dessert-radio',
     targetAttribute: 'isVisible',
     rules: [{
       type: app.BehaviorType.Proposition,
-      model: 'showDesserts',
+      model: 'isDessert',
       value: true
     }]
   }];
