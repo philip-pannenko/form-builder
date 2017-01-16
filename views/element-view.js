@@ -2,35 +2,34 @@ var app = app || {};
 (function ($) {
   'use strict';
 
-  app.InputView = Backbone.View.extend({
+  app.ElementView = Backbone.View.extend({
 
-    model: app.Input,
+    model: app.Element,
 
-    // Different input types like to be triggered differently, all point to same underlying handling method
+    // Different element types like to be triggered differently, all point to same underlying handling method
     events: {
       'blur input[type=text]': 'updateModel',
       'click input[type=radio],[type=checkbox]': 'updateModel',
       'click input[type=button]': 'updateModel'
     },
 
-    errorTemplate: _.template('<p class="alert alert-error"><%= obj.validationError %></p>'),
+    errorTemplate: _.template('<p class="alert alert-error"><%= obj.attributes.validationMessages.toString() %></p>'),
 
     initialize: function () {
 
       this.template = _.template(this.model.attributes.template);
 
-      //TODO name this better
-      if(this.model.attributes.labelTemplate) {
+      // TODO: Name this better
+      if (this.model.attributes.labelTemplate) {
         this.labelTemplate = _.template(this.model.attributes.labelTemplate.type.template);
       }
       // Bind to the model when one of the three events are detected
-      this.model.on('change:value', this.render, this);
-      this.model.on('change:value', this.notifyModelUpdated, this);
       this.model.on('change:isVisible', this.render, this);
       this.model.on('change:isReadOnly', this.render, this);
+      this.model.on('change:value', this.render, this);
 
       // Have this view pay attention to any external changes too (ie: button click to make read-only)
-      Backbone.on(this.model.attributes.dataModel + '-changed', this.changed, this);
+      Backbone.on(this.model.attributes.model + '-changed', this.changed, this);
     },
 
     changed: function (property, value) {
@@ -45,27 +44,29 @@ var app = app || {};
     },
 
     render: function () {
-      console.log('rendering InputView-' + this.model.attributes.id);
+      console.log('rendering ElementView(' + this.model.attributes.id + ')');
 
-      // Remove from DOM an invisible Input
+      // Remove from DOM an invisible Element
       if (!_.isUndefined(this.model.attributes.isVisible) && !this.model.attributes.isVisible) {
         this.$el.empty();
         return;
       }
 
-      if (this.model.attributes.type === Type.Checkbox || this.model.attributes.type === Type.Radio) {
+      if (this.model.attributes.type === app.Type.Checkbox || this.model.attributes.type === app.Type.Radio) {
         this.$el.empty();
         _.each(this.model.attributes.list, function (item, i) {
           var option = this.model.toJSON();
           option.optionValue = item.value;
           option.optionLabel = item.label;
 
-          if (this.model.attributes.type === Type.Checkbox) {
+          if (this.model.attributes.type === app.Type.Checkbox) {
             option.checked = this.model.attributes.checked[item.value];
-          } else if (this.model.attributes.type === Type.Radio) {
-            if(_.isUndefined(this.model.attributes.value) || _.isNull(this.model.attributes.value)) {
-              this.model.set('value', item.value, {silent:true}); // re-default a value to the first option
-              this.notifyModelUpdated(); // important because we need to cascade down changes to other depended items
+          } else if (this.model.attributes.type === app.Type.Radio) {
+            if (_.isUndefined(this.model.attributes.value) || _.isNull(this.model.attributes.value)) {
+              this.model.set('value', item.value, {silent: true}); // re-default a value to the first option
+
+              // Important because we need to cascade down changes to other dependent elements
+              this.model.notifyModelUpdated();
             }
             option.checked = this.model.attributes.value === item.value;
           }
@@ -76,31 +77,26 @@ var app = app || {};
         this.$el.html(this.template(this.model.toJSON()));
       }
 
-      // TODO find out way to bundle non value attributes of an element
-      // if (!_.isUndefined(this.model.attributes.isReadOnly) && !this.model.attributes.isReadOnly) {
-      //   this.$el.prop('readonly', this.model.attributes.isReadOnly);
-      // }
-
-      // If validation errors were identified, add that template
       if (this.model.attributes.labelTemplate) {
         this.$el.prepend(this.labelTemplate(this.model.attributes.labelTemplate)); // = _.template(this.model.attributes.labelTemplate.type.template);
       }
 
       // If validation errors were identified, add that template
-      if (this.model.validationError) {
+      if (this.model.attributes.validationMessages.length) {
         this.$el.prepend(this.errorTemplate(this.model));
       }
       return this;
     },
 
     updateModel: function (e) {
-      // This line is here because readOnly input fields can have fired events,
+      // This line is here because readOnly element fields can have fired events,
       //  however we don't want to do anything about it
       if (this.model.attributes.isReadOnly) {
         return;
       }
 
-      if (!this.model.attributes.dataModel) {
+      // Return if no model is associated with this element
+      if (!this.model.attributes.model) {
         return;
       }
 
@@ -120,26 +116,24 @@ var app = app || {};
       }
 
       // Sanitize booleans
-      if(value === 'true') {
+      if (value === 'true') {
         value = true;
       } else if (value === 'false') {
         value = false;
       }
 
-      this.model.set('value', value, {silent: true}); // silent because we don't want to re-render DOM if it's not valid
+      // Don't trigger any event changes if the values are the same;
+      if (this.model.attributes.value === value) {
+        return;
+      }
 
-      this.model.isValid(); // validate the value is accurate
-      this.render(); // only after it's accurate, repaint the dom
+      this.model.set('value', value);
 
-      this.notifyModelUpdated();
+      this.model.notifyModelUpdated();
 
-    },
-
-    notifyModelUpdated: function() {
-      // After we know this input field is good, let the parent form update itself with this data
-      console.log('model-changed, ' + this.model.attributes.dataModel + ', (' + this.model.attributes.value + ')');
-      Backbone.trigger('model-changed', this.model.attributes.dataModel, this.model.attributes.value);
     }
+
+
 
   });
 })(jQuery);

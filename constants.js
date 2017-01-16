@@ -1,3 +1,8 @@
+var app = app || {};
+(function ($) {
+  'use strict';
+
+
 // function HTMLElement(options, protectedVariables) {
 //     protectedVariables = protectedVariables || {};
 //     protectedVariables.styleClass = options.styleClass;
@@ -90,207 +95,214 @@
 //     });
 // };
 
-// TODO add a template that has an Add Party / Remove Party like behavior
-var Type = {};
-
-Type.Button = {
-  type: 'button',
-  styleClass: null,
-  template: '<input id="<%= id %>" type="button" ' +
-  '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
-  '<%= !_.isUndefined(value) ? " value=\'" + value + "\'" : "" %> >'
-};
-Type.Label = {
-  type: 'label',
-  styleClass: null,
-  forAttr: null,
-  label: null,
-  template: '<label id="<%= id %>" ' +
-  '<%= forAttr ? " for=\'" + forAttr + "\'": ""%>' +
-  '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>> <%= label %> </label>'
-};
-
-Type.Text = {
-  type: 'text',
-  styleClass: null,
-  value: null,
-  placeholder: null,
-  template: '<input id="<%= id %>" type="text"' +
-  '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
-  '<%= placeholder ? " placeholder=\'" + placeholder + "\'"  : ""%>' +
-  '<%= !_.isUndefined(value) && !_.isNull(value) ? " value=\'" + value + "\'" : ""%>>'
-};
-
-Type.Checkbox = {
-  type: 'checkbox',
-  styleClass: null,
-  checked: null,
-  option: null,
-  template: '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
-  '  <input type="checkbox" id="<%= id %>"' +
-  '  <%= checked ? " checked" : "" %>' +
-  '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
-  '  <span class="label-body"><%= optionLabel %></span>' +
-  '</label>'
-};
-
-Type.Radio = {
-  type: 'radio',
-  styleClass: null,
-  checked: null,
-  option: null,
-  template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
-  '  <input type="radio" id="<%= id %>"' +
-  '  <%= dataModel ? " name=\'" + dataModel + "\'" : "" %>' +
-  '  <%= checked ? " checked" : "" %>' +
-  '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
-  '  <span class="label-body"><%= optionLabel %></span>' +
-  '</label>'
-};
-
-
-
-
-var Validation = {
-
-  notEmpty: function (value) {
-    if (value === '') {
-      return "Field cannot be empty";
+  app.Type = {
+    Button: {
+      type: 'button',
+      styleClass: null,
+      template: '<input id="<%= id %>" type="button" ' +
+      '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
+      '<%= isReadOnly? " readonly" : "" %>' +
+      '<%= !_.isUndefined(value) ? " value=\'" + value + "\'" : "" %> >'
+    },
+    Label: {
+      type: 'label',
+      styleClass: null,
+      forAttr: null,
+      label: null,
+      template: '<label id="<%= id %>" ' +
+      '<%= forAttr ? " for=\'" + forAttr + "\'": ""%>' +
+      '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>> <%= label %> </label>'
+    },
+    Text: {
+      type: 'text',
+      styleClass: null,
+      value: null,
+      placeholder: null,
+      template: '<input id="<%= id %>" type="text"' +
+      '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>' +
+      '<%= isReadOnly? " readonly" : "" %>' +
+      '<%= placeholder ? " placeholder=\'" + placeholder + "\'"  : ""%>' +
+      '<%= !_.isUndefined(value) && !_.isNull(value) ? " value=\'" + value + "\'" : ""%>>'
+    },
+    Checkbox: {
+      type: 'checkbox',
+      styleClass: null,
+      checked: null,
+      option: null,
+      template: '<label <%= styleClass ? " class=\'" + styleClass  : ""%>>' +
+      '  <input type="checkbox" id="<%= id %>"' +
+      '  <%= checked ? " checked" : "" %>' +
+      '  <%= isReadOnly? " readonly" : "" %>' +
+      '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
+      '  <span class="label-body"><%= optionLabel %></span>' +
+      '</label>'
+    },
+    Radio: {
+      type: 'radio',
+      styleClass: null,
+      checked: null,
+      option: null,
+      template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
+      '  <input type="radio" id="<%= id %>"' +
+      '  <%= model ? " name=\'" + model + "\'" : "" %>' +
+      '  <%= isReadOnly? " readonly" : "" %>' +
+      '  <%= checked ? " checked" : "" %>' +
+      '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
+      '  <span class="label-body"><%= optionLabel %></span>' +
+      '</label>'
     }
-  },
+  };
 
-  maxLength: function (value, options) {
-    if (value && value.length > options.length) {
-      return "Field cannot have more than " + options.length + " characters";
+
+  app.Validation = {
+    notEmpty: function (value) {
+      if (value === '') {
+        return "Field cannot be empty";
+      }
+    },
+    maxLength: function (value, options) {
+      if (value && value.length > options.length) {
+        return "Field cannot have more than " + options.length + " characters";
+      }
+    },
+    emailAddress: function (value, label) {
+      var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      if (!re.test(value)) {
+        return label + " is an invalid email address";
+      }
     }
-  },
+  };
 
-  emailAddress: function (value, label) {
-
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if (!re.test(value)) {
-      return label + " is an invalid email address";
-    }
-  }
-};
-
-var FormSchema = [
-  {
-    type: Type.Text,
+  app.FormSchema = [{
+    type: app.Type.Text,
     id: 'name',
     label: 'Name',
     placeholder: 'Joe',
-    dataModel: 'name',
+    model: 'name',
     validationRules: [
-      {method: Validation.notEmpty},
-      {method: Validation.maxLength, options: {length: 10}}
+      {method: app.Validation.notEmpty},
+      {method: app.Validation.maxLength, options: {length: 10}}
     ]
   }, {
-    type: Type.Button,
-    id: 'button',
-    value: 'Click Here'
-  }, {
-    type: Type.Text,
-    id: 'name-2',
-    label: 'Name',
-    placeholder: 'Joe',
-    dataModel: 'name',
+    type: app.Type.Text,
+    id: 'another-name',
+    label: 'Another Name Input Field Bound to Same Model but w/ Different Validations',
+    placeholder: 'Jane',
+    model: 'name',
     validationRules: [
-      {method: Validation.notEmpty},
-      {method: Validation.maxLength, options: {length: 10}}
+      {method: app.Validation.notEmpty},
+      {method: app.Validation.maxLength, options: {length: 15}}
     ]
   }, {
-    type: Type.Checkbox,
+    type: app.Type.Text,
+    id: 'read-only-name',
+    label: 'Read-Only Bound to Name Same Model as Above 2 Inputs',
+    placeholder: 'Read-Only Placeholder',
+    model: 'name',
+    isReadOnly: true
+  },
+  // TODO: Add button functionality example
+  // {
+  //   type: app.Type.Button,
+  //   id: 'button',
+  //   value: 'Click Here to Clear Name Model'
+  // },
+  {
+    type: app.Type.Checkbox,
     id: 'my-checkbox',
     label: 'Color',
-    dataModel: 'color',
+    model: 'color',
     list: [{label: 'Blue', value: 'blue'}, {label: 'Red', value: 'red'}, {label: 'Green', value: 'green'}],
     default: ['blue', 'red']
   }, {
-    type: Type.Radio,
-    id: 'one-checkbox',
+    type: app.Type.Radio,
+    id: 'show-dessert-radio',
     label: 'Show Dessert Menu?',
-    dataModel: 'showDesserts',
+    model: 'isDessert',
     list: [{label: 'Yes!', value: true}, {label: 'No thanks.', value: false}],
     default: true
   }, {
-    type: Type.Radio,
-    id: 'my-radio',
+    type: app.Type.Radio,
+    id: 'choose-dessert-radio',
     label: 'Dessert',
-    dataModel: 'dessert',
+    model: 'dessert',
     list: [{label: 'Cookies', value: 'cookies'}, {label: 'Ice Cream', value: 'iceCream'}],
     default: 'cookies'
   }, {
-    type: Type.Label,
-    id: 'iceCreamLogic',
+    type: app.Type.Label,
+    id: 'ice-cream-label',
     label: 'Whip cream and sprinkles w/ ice cream is awesome!'
   }, {
-    type: Type.Label,
-    id: 'cookieLogic',
+    type: app.Type.Label,
+    id: 'cookie-label',
     label: 'Can\'t do it without milk'
-  }
-];
+  }];
 
-var BehaviorSchema = [{
-  name: 'showIceCreamLogic',
-  target: 'iceCreamLogic',
-  type: 'isVisible',
-  rules: [{
-    type: 'proposition',
-    element: 'showDesserts',
-    value: true
-  }, {
-    type: 'variable',
-    element: 'dessert',
-    operator: 'EQUALS',
-    value: 'iceCream'
-  }, {
-    type: 'operator',
-    element: 'AND'
-  }]
-}, {
-  name: 'showCookieLogic',
-  target: 'cookieLogic',
-  type: 'isVisible',
-  rules: [{
-    type: 'proposition',
-    element: 'showDesserts',
-    value: true
-  }, {
-    type: 'variable',
-    element: 'dessert',
-    operator: 'EQUALS',
-    value: 'cookies'
-  }, {
-    type: 'operator',
-    element: 'AND'
-  }]
-}, {
-  name: 'showDessertLogic',
-  target: 'my-radio',
-  type: 'isVisible',
-  rules: [{
-    type: 'proposition',
-    element: 'showDesserts',
-    value: true
-  }]
-}];
+  app.BehaviorType = {
+    Proposition: 'proposition',
+    Operator: 'operator',
+    Variable: 'variable',
+    Rule: 'rule'
+  };
 
-var BehaviorType = {};
-BehaviorType.Proposition = 'proposition';
-BehaviorType.Operator = 'operator';
-BehaviorType.Variable = 'variable';
-BehaviorType.Rule = 'rule';
+  app.Operator = {
+    AND: 'AND',
+    OR: 'OR',
+    XOR: 'XOR',
+    NOT: 'NOT',
+    EQUAL_TO: 'EQUALTO',
+    NOT_EQUAL_TO: 'NOTEQUALTO',
+    LESS_THAN: 'LESSTHAN',
+    GREATER_THAN: 'GREATERTHAN',
+    LESS_THAN_OR_EQUAL_TO: 'LESSTHANOREQUALTO',
+    GREATER_THAN_OR_EQUAL_TO: 'GREATERTHANOREQUALTO',
+    INCLUDES: 'INCLUDES'
+  };
 
-var Operator = {};
-Operator.AND = 'AND';
-Operator.OR = 'OR';
-Operator.XOR = 'XOR';
-Operator.NOT = 'NOT';
-Operator.EQUAL_TO = 'EQUALTO';
-Operator.NOT_EQUAL_TO = 'NOTEQUALTO';
-Operator.LESS_THAN = 'LESSTHAN';
-Operator.GREATER_THAN = 'GREATERTHAN';
-Operator.LESS_THAN_OR_EQUAL_TO = 'LESSTHANOREQUALTO';
-Operator.GREATER_THAN_OR_EQUAL_TO = 'GREATERTHANOREQUALTO';
-Operator.INCLUDES = 'INCLUDES';
+  app.RulesSchema = [{
+    name: 'showIceCreamLabel',
+    target: 'ice-cream-label',
+    targetAttribute: 'isVisible',
+    rules: [{
+      type: app.BehaviorType.Proposition,
+      model: 'isDessert',
+      value: true
+    }, {
+      type: app.BehaviorType.Variable,
+      model: 'dessert',
+      operator: app.Operator.EQUAL_TO,
+      value: 'iceCream'
+    }, {
+      type: app.BehaviorType.Operator,
+      operator: app.Operator.AND
+    }]
+  }, {
+    name: 'showCookieLabel',
+    target: 'cookie-label',
+    targetAttribute: 'isVisible',
+    rules: [{
+      type: app.BehaviorType.Proposition,
+      model: 'isDessert',
+      value: true
+    }, {
+      type: app.BehaviorType.Variable,
+      model: 'dessert',
+      operator: app.Operator.EQUAL_TO,
+      value: 'cookies'
+    }, {
+      type: app.BehaviorType.Operator,
+      operator: app.Operator.AND
+    }]
+  }, {
+    name: 'showDessertOptions',
+    target: 'choose-dessert-radio',
+    targetAttribute: 'isVisible',
+    rules: [{
+      type: app.BehaviorType.Proposition,
+      model: 'isDessert',
+      value: true
+    }]
+  }];
+
+
+})();
