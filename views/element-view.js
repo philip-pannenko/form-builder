@@ -13,7 +13,7 @@ var app = app || {};
       'click input[type=button]': 'updateModel'
     },
 
-    errorTemplate: _.template('<p class="alert alert-error"><%= obj.validationError %></p>'),
+    errorTemplate: _.template('<p class="alert alert-error"><%= obj.attributes.validationMessages.toString() %></p>'),
 
     initialize: function () {
 
@@ -24,10 +24,9 @@ var app = app || {};
         this.labelTemplate = _.template(this.model.attributes.labelTemplate.type.template);
       }
       // Bind to the model when one of the three events are detected
-      this.model.on('change:value', this.render, this);
       this.model.on('change:isVisible', this.render, this);
       this.model.on('change:isReadOnly', this.render, this);
-      this.model.on('change:value', this.notifyModelUpdated, this);
+      this.model.on('change:value', this.render, this);
 
       // Have this view pay attention to any external changes too (ie: button click to make read-only)
       Backbone.on(this.model.attributes.model + '-changed', this.changed, this);
@@ -45,7 +44,7 @@ var app = app || {};
     },
 
     render: function () {
-      console.log('rendering ElementView-' + this.model.attributes.id);
+      console.log('rendering ElementView(' + this.model.attributes.id + ')');
 
       // Remove from DOM an invisible Element
       if (!_.isUndefined(this.model.attributes.isVisible) && !this.model.attributes.isVisible) {
@@ -65,7 +64,9 @@ var app = app || {};
           } else if (this.model.attributes.type === app.Type.Radio) {
             if (_.isUndefined(this.model.attributes.value) || _.isNull(this.model.attributes.value)) {
               this.model.set('value', item.value, {silent: true}); // re-default a value to the first option
-              this.notifyModelUpdated(); // important because we need to cascade down changes to other depended items
+
+              // Important because we need to cascade down changes to other dependent elements
+              this.notifyModelUpdated();
             }
             option.checked = this.model.attributes.value === item.value;
           }
@@ -76,18 +77,16 @@ var app = app || {};
         this.$el.html(this.template(this.model.toJSON()));
       }
 
-      // TODO: Find out way to bundle non value attributes of an element
       if (!_.isUndefined(this.model.attributes.isReadOnly) && !this.model.attributes.isReadOnly) {
         this.$el.prop('readonly', this.model.attributes.isReadOnly);
       }
 
-      // If validation errors were identified, add that template
       if (this.model.attributes.labelTemplate) {
         this.$el.prepend(this.labelTemplate(this.model.attributes.labelTemplate)); // = _.template(this.model.attributes.labelTemplate.type.template);
       }
 
       // If validation errors were identified, add that template
-      if (this.model.validationError) {
+      if (this.model.attributes.validationMessages.length) {
         this.$el.prepend(this.errorTemplate(this.model));
       }
       return this;
@@ -132,19 +131,18 @@ var app = app || {};
         return;
       }
 
-      this.model.set('value', value, {silent: true}); // silent because we don't want to re-render DOM if it's not valid
-
-      this.model.isValid(); // validate the value is accurate
-      this.render(); // only after it's accurate, repaint the dom
+      this.model.set('value', value);
 
       this.notifyModelUpdated();
 
     },
 
     notifyModelUpdated: function () {
-      // After we know this element field is good, let the parent form update itself with this data
-      console.log('model-changed, ' + this.model.attributes.model + ', (' + this.model.attributes.value + ')');
-      Backbone.trigger('model-changed', this.model.attributes.model, this.model.attributes.value);
+      if (!_.isUndefined(this.model.attributes.model)) {
+        // After we know this element field is good, let the parent form update itself with this data
+        console.log('element(' + this.model.id + ') changed its model(' + this.model.attributes.model + ') value to: ' + this.model.attributes.value);
+        Backbone.trigger('model-changed', this.model.id, this.model.attributes.model, this.model.attributes.value);
+      }
     }
 
   });

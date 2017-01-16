@@ -95,7 +95,7 @@ var app = app || {};
 //     });
 // };
 
-// TODO: add a template that has an Add Party / Remove Party like behavior
+// TODO: Add a template that has an Add Party / Remove Party like behavior
   app.Type = {
     Button: {
       type: 'button',
@@ -249,7 +249,7 @@ var app = app || {};
   app.RulesSchema = [{
     name: 'showIceCreamLogic',
     target: 'iceCreamLogic',
-    type: 'isVisible',
+    targetAttribute: 'isVisible',
     rules: [{
       type: app.BehaviorType.Proposition,
       model: 'showDesserts',
@@ -266,7 +266,7 @@ var app = app || {};
   }, {
     name: 'showCookieLogic',
     target: 'cookieLogic',
-    type: 'isVisible',
+    targetAttribute: 'isVisible',
     rules: [{
       type: app.BehaviorType.Proposition,
       model: 'showDesserts',
@@ -283,7 +283,7 @@ var app = app || {};
   }, {
     name: 'showDessertLogic',
     target: 'my-radio',
-    type: 'isVisible',
+    targetAttribute: 'isVisible',
     rules: [{
       type: app.BehaviorType.Proposition,
       model: 'showDesserts',

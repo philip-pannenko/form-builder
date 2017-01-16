@@ -33,11 +33,14 @@ var app = app || {};
         var elementModel = new app.Element(element);
         this.model.attributes.elements.add(elementModel);
 
-        // Reverse lookup element by domId
-        if (!this.model.attributes.domIdElements[element.id]) {
-          this.model.attributes.domIdElements[element.id] = [];
+        if (!this.model.attributes.modelDomIds[element.model]) {
+          this.model.attributes.modelDomIds[element.model] = [];
         }
-        this.model.attributes.domIdElements[element.id].push(elementModel);
+
+        this.model.attributes.modelDomIds[element.model].push(element.id);
+
+        // Reverse lookup element by domId
+        this.model.attributes.domIdElement[element.id] = elementModel;
 
       }, this);
 
@@ -66,8 +69,9 @@ var app = app || {};
           }
         }, this);
 
-        // TODO: There's got to be a safer and more conventional way to add a property to the jsrule.Rule object
+        // TODO: There's got to be a safer and more conventional way in Javascript to add a property to an existing 3rd party object (jsrule.Rule in this case)
         formRule.target = ruleSchema.target;
+        formRule.targetAttribute = ruleSchema.targetAttribute;
 
         // Add lookup of rule by behavior name
         this.model.attributes.rules[ruleSchema.name] = formRule;
@@ -87,13 +91,14 @@ var app = app || {};
 
     },
 
-    runFormRules: function (property) {
+    runFormRules: function (model) {
 
-      _.each(this.model.attributes.modelRules[property], function (rule) {
-
+      // Find all rules associated with the model property changed
+      _.each(this.model.attributes.modelRules[model], function (rule) {
         console.log('running Rule(' + rule.name + ')');
-
         var fact = new jsrules.RuleContext(rule.name + '-fact');
+
+        // Build the jsrule to execute
         _.each(rule.elements, function (element) {
           if (element.type === 'jsrules.Proposition') {
             fact.addProposition(element.name, this.model.attributes.model[element.name]);
@@ -106,35 +111,43 @@ var app = app || {};
           }
         }, this);
 
-        _.each(this.model.attributes.domIdElements[rule.target], function (element) {
+        // Run the jsRule against all Elements that's bound to that model
+        var element = this.model.attributes.domIdElement[rule.target];
 
-          // Run the jsRule using real-time model values to generate a true or false
-          var ruleResult = rule.evaluate(fact).value;
+        // Run the jsRule using real-time model values to generate a true or false
+        var ruleResult = rule.evaluate(fact).value;
 
-          // If the rule is found to be valued differently than the previous value, update the model associated with the rule
-          if (element.attributes.isVisible !== ruleResult) {
-            console.log('rule(' + rule.name + ') caused dom-id(' + rule.target + ') to change');
-            // Update the Element properties causing the Element View to be re-rendered.
-            element.set({
-              isVisible: ruleResult, value: null
-            });
-          }
-        }, this);
+        // If the rule is found to be valued differently than the previous value, update the model associated with the rule
+        if (element.attributes[rule.targetAttribute] !== ruleResult) {
+          console.log('rule(' + rule.name + ') caused dom-id(' + rule.target + ') attribute(' + rule.targetAttribute + ') to change to ' + ruleResult);
+
+          // Update the Element properties causing the Element View to be re-rendered.
+          element.changeAttribute(rule.targetAttribute, ruleResult);
+        }
 
 
       }, this);
     },
 
-    updateModel: function (property, value) {
+    updateModel: function (domIdUpdated, model, value) {
 
-      if (this.model.updateModel(property, value)) {
-        this.runFormRules(property, value);
+      if (this.model.updateModel(model, value)) {
+        this.runFormRules(model, value);
 
-        // TODO: After a model is updated, make sure self components are listening to change in case multiple components are bound to the same model
+        _.each(this.model.attributes.modelDomIds[model], function (domId) {
+
+          // Don't update the value that was just update to prevent a recursive chain
+          // TODO: Clean this recursive chain up by passing the calling domId chain into the event
+          if (domIdUpdated !== domId) {
+            var element = this.model.attributes.elements.get(domId);
+            element.set('value', value);
+          }
+
+        }, this);
 
         // Then trigger any ancillary elements that need to be changed because of one thing or another...
-        console.log(property + '-changed, (' + value + ')');
-        Backbone.trigger(property + '-changed', property, value);
+        console.log('model(' + model + ') changed to: ' + value);
+        Backbone.trigger(model + '-changed', model, value);
       }
     },
 

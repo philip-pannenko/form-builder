@@ -4,12 +4,15 @@ var app = app || {};
   app.Form = Backbone.Model.extend({
 
     defaults: {
+      // Static from JSON
       rules: {}, // this is interpreted from the incoming json file
       elements: new app.Elements(), // this is also interpreted from the incoming json file
 
-      model: {}, // this identifies the models on the form
-      modelRules: {}, // this is a reverse lookup and is generated. pointer to rule
-      domIdElements: {} // this is a reverse lookup and is generated. pointer to rule
+      // Generated from JSON
+      model: {}, // one-to-one
+      modelRules: {}, // one-to-many
+      modelDomIds: {}, // one-to-many
+      domIdElement: {} // one-to-one
 
     },
 
@@ -24,24 +27,24 @@ var app = app || {};
     // Variable: modelRules
     //  Find the rules associated with a model
     //    { dataModel1: [app.Rule, app.Rule, app.Rule], ... }
+    // Variable modelDomIds
+    //  Find the domIds associated to an Element
+    //    { dataModel: [domId1, domId2, ...],
     // Variable: domIdElements
-    //  Find the domIds associated with a model
-    //    { dataModel1: [app.Element, app.Element, app.Element], ... }
+    //  Find the Element associated to a single domId
+    //    { domId: app.Element, domId: app.Element, ... }
 
     // In general, rules can be applied to any form element however adjacent form elements can only
     //  be triggered by binding to a form element. If an element needs to change it's value, it needs to bind to model
 
     updateModel: function (modelProperty, value) {
       var model = this.attributes.model;
-
-
       if (model[modelProperty] !== undefined && model[modelProperty] !== value) {
         model[modelProperty] = value;
         return true;
       } else {
         return false;
       }
-
     },
 
     createModel: function (modelProperty, value) {
