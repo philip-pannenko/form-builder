@@ -10,60 +10,67 @@ var app = app || {};
     },
 
     template: _.template('<h1>Generated Form</h1><form id="form"></form><input id="submit" class="button-primary" type="submit" value="submit input">'),
+
     model: app.Form,
 
     initialize: function () {
 
       this.model = new app.Form();
 
-      // TODO: Move a number of the attributes from this view into the model
-      _.each(app.FormSchema, function (component) {
+      // Go through each form schema element and add it to the form model
+      _.each(app.FormSchema, function (element) {
 
-        if (component.dataModel) {
+        if (element.model) {
           // Assign the values from the form to the form model
-          if (!_.isUndefined(component.default)) {
-            this.model.set(component.dataModel, component.default);
+          if (!_.isUndefined(element.default)) {
+            this.model.createModel(element.model, element.default);
           } else {
-            this.model.set(component.dataModel, null);
+            this.model.createModel(element.model, null);
           }
         }
-        this.model.attributes.elements.add(new app.Element(component));
+
+        // Create a Backbone model and add it to the collection of Element models
+        var elementModel = new app.Element(element);
+        this.model.attributes.elements.add(elementModel);
+
+        // Reverse lookup element by domId
+        if (!this.model.attributes.domIdElements[element.id]) {
+          this.model.attributes.domIdElements[element.id] = [];
+        }
+        this.model.attributes.domIdElements[element.id].push(elementModel);
 
       }, this);
 
-      _.each(app.BehaviorSchema, function (behavior) {
-        var formRule = new jsrules.Rule(behavior.name);
+      // Go through each behavior schema and add it the the form model
+      _.each(app.RulesSchema, function (ruleSchema) {
+        var formRule = new jsrules.Rule(ruleSchema.name);
 
-        // TODO Add static references instead of string comparisons
-        _.each(behavior.rules, function (rule, i) {
+        _.each(ruleSchema.rules, function (rule) {
 
-          if (rule.type === 'proposition') {
-            formRule.addProposition(rule.element, rule.value);
-          } else if (rule.type === 'variable') {
-            formRule.addVariable(rule.element + 'expected', rule.value);
-            formRule.addVariable(rule.element, null); // actual
-            // TODO: Expand this to accept a number of additional Operators
-            formRule.addOperator(jsrules.Operator.EQUAL_TO);
-          } else if (rule.type === 'operator') {
-            // TODO: Expand this to accept a number of additional Operators
-            formRule.addOperator(jsrules.Operator.AND);
+          if (rule.type === app.BehaviorType.Proposition) {
+            formRule.addProposition(rule.model, rule.value);
+          } else if (rule.type === app.BehaviorType.Variable) {
+            formRule.addVariable(rule.model + 'expected-', rule.value);
+            formRule.addVariable(rule.model, null); // this is needed to fulfill jsrule template
+            formRule.addOperator(rule.operator);
+          } else if (rule.type === app.BehaviorType.Operator) {
+            formRule.addOperator(rule.operator);
           }
 
-          if (rule.type !== 'operator') {
-            // Reverse lookup rules by dataModel so that all behaviors can be run if the dataModel is changed
-            if (!this.model.attributes.findRuleNameByDataModel[rule.element]) {
-              console.log(rule.element);
-              this.model.attributes.findRuleNameByDataModel[rule.element] = [];
+          // Reverse lookup rules by modelName
+          if (rule.type !== app.BehaviorType.Operator) {
+            if (!this.model.attributes.modelRules[rule.model]) {
+              this.model.attributes.modelRules[rule.model] = [];
             }
-            this.model.attributes.findRuleNameByDataModel[rule.element].push(behavior.name);
+            this.model.attributes.modelRules[rule.model].push(formRule);
           }
         }, this);
 
-        // Add lookup of rule by behavior name
-        this.model.attributes.rules[behavior.name] = formRule;
+        // TODO: There's got to be a safer and more conventional way to add a property to the jsrule.Rule object
+        formRule.target = ruleSchema.target;
 
-        // Add reverse lookup of
-        this.model.attributes.uiBehaviors[behavior.name] = {id: behavior.target, value: true, type: behavior.type}
+        // Add lookup of rule by behavior name
+        this.model.attributes.rules[ruleSchema.name] = formRule;
 
       }, this);
 
@@ -74,63 +81,65 @@ var app = app || {};
       this.render();
 
       // Run all of the behaviors to render actual interacted form
-      _.each(this.model.attributes.findRuleNameByDataModel, function (ruleName, dataModel) {
-        this.runFormRules(dataModel);
+      _.each(this.model.attributes.modelRules, function (ruleName, model) {
+        this.runFormRules(model);
       }, this);
 
     },
 
     runFormRules: function (property) {
-      _.each(this.model.attributes.findRuleNameByDataModel[property], function (ruleName) {
 
-        var rule = this.model.attributes.rules[ruleName];
-        console.log('The following rule is going to be run: ' + rule.name);
+      _.each(this.model.attributes.modelRules[property], function (rule) {
 
-        var fact = new jsrules.RuleContext(rule.name + 'Fact');
+        console.log('running Rule(' + rule.name + ')');
+
+        var fact = new jsrules.RuleContext(rule.name + '-fact');
         _.each(rule.elements, function (element) {
           if (element.type === 'jsrules.Proposition') {
-            fact.addProposition(element.name, this.model.attributes[element.name]);
+            fact.addProposition(element.name, this.model.attributes.model[element.name]);
           } else if (element.type === 'jsrules.Variable') {
-            if (typeof this.model.attributes[element.name] != 'undefined') {
-              fact.addVariable(element.name, this.model.attributes[element.name]);
+            if (typeof this.model.attributes.model[element.name] != 'undefined') {
+              fact.addVariable(element.name, this.model.attributes.model[element.name]);
             } else {
               fact.addVariable(element.name, null); // add placeholder for JSRules to be able to lookup rule
             }
           }
         }, this);
 
-        // TODO: Clean this up and add other ui properties aside from isVisible (ie: readonly?)
-        var uiBehavior = this.model.attributes.uiBehaviors[ruleName];
-        var ruleResult = rule.evaluate(fact).value;
-        if (uiBehavior.value !== ruleResult) {
-          console.log('ruleName' + ruleName + ', uiBehavior:' + uiBehavior.value + ', ruleResult:' + ruleResult + ', ');
-          uiBehavior.value = ruleResult;
-          var element = this.model.attributes.elements.get(uiBehavior.id);
-          var properties = uiBehavior.value ? {isVisible: uiBehavior.value} : {
-              isVisible: uiBehavior.value,
-              value: null
-            };
-          element.set(properties);
+        _.each(this.model.attributes.domIdElements[rule.target], function (element) {
 
-        }
+          // Run the jsRule using real-time model values to generate a true or false
+          var ruleResult = rule.evaluate(fact).value;
+
+          // If the rule is found to be valued differently than the previous value, update the model associated with the rule
+          if (element.attributes.isVisible !== ruleResult) {
+            console.log('rule(' + rule.name + ') caused dom-id(' + rule.target + ') to change');
+            // Update the Element properties causing the Element View to be re-rendered.
+            element.set({
+              isVisible: ruleResult, value: null
+            });
+          }
+        }, this);
+
 
       }, this);
     },
 
     updateModel: function (property, value) {
-      this.model.updateModel(property, value);
-      this.runFormRules(property, value);
 
-      // TODO: After a model is updated, make sure self components are listening to change in case multiple components are bound to the same model
+      if (this.model.updateModel(property, value)) {
+        this.runFormRules(property, value);
 
-      // Then trigger any ancillary elements that need to be changed because of one thing or another...
-      console.log(property + '-changed, (' + value + ')');
-      Backbone.trigger(property + '-changed', property, value);
+        // TODO: After a model is updated, make sure self components are listening to change in case multiple components are bound to the same model
 
+        // Then trigger any ancillary elements that need to be changed because of one thing or another...
+        console.log(property + '-changed, (' + value + ')');
+        Backbone.trigger(property + '-changed', property, value);
+      }
     },
 
     submitForm: function () {
-      console.log(this.model.toJSON());
+      console.log(this.model.attributes.model);
     },
 
     render: function () {

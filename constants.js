@@ -95,9 +95,8 @@ var app = app || {};
 //     });
 // };
 
-// TODO add a template that has an Add Party / Remove Party like behavior
+// TODO: add a template that has an Add Party / Remove Party like behavior
   app.Type = {
-
     Button: {
       type: 'button',
       styleClass: null,
@@ -114,7 +113,6 @@ var app = app || {};
       '<%= forAttr ? " for=\'" + forAttr + "\'": ""%>' +
       '<%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>> <%= label %> </label>'
     },
-
     Text: {
       type: 'text',
       styleClass: null,
@@ -125,7 +123,6 @@ var app = app || {};
       '<%= placeholder ? " placeholder=\'" + placeholder + "\'"  : ""%>' +
       '<%= !_.isUndefined(value) && !_.isNull(value) ? " value=\'" + value + "\'" : ""%>>'
     },
-
     Checkbox: {
       type: 'checkbox',
       styleClass: null,
@@ -138,7 +135,6 @@ var app = app || {};
       '  <span class="label-body"><%= optionLabel %></span>' +
       '</label>'
     },
-
     Radio: {
       type: 'radio',
       styleClass: null,
@@ -146,33 +142,27 @@ var app = app || {};
       option: null,
       template: '<label <%= styleClass ? " class=\'" + styleClass + "\'"  : ""%>>' +
       '  <input type="radio" id="<%= id %>"' +
-      '  <%= dataModel ? " name=\'" + dataModel + "\'" : "" %>' +
+      '  <%= model ? " name=\'" + model + "\'" : "" %>' +
       '  <%= checked ? " checked" : "" %>' +
       '  <%= !_.isUndefined(optionValue) ? " value=\'" + optionValue + "\'" : ""%>>' +
       '  <span class="label-body"><%= optionLabel %></span>' +
       '</label>'
     }
-
-
   };
 
 
   app.Validation = {
-
     notEmpty: function (value) {
       if (value === '') {
         return "Field cannot be empty";
       }
     },
-
     maxLength: function (value, options) {
       if (value && value.length > options.length) {
         return "Field cannot have more than " + options.length + " characters";
       }
     },
-
     emailAddress: function (value, label) {
-
       var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if (!re.test(value)) {
         return label + " is an invalid email address";
@@ -180,106 +170,59 @@ var app = app || {};
     }
   };
 
-  app.FormSchema = [
-    {
-      type: app.Type.Text,
-      id: 'name',
-      label: 'Name',
-      placeholder: 'Joe',
-      dataModel: 'name',
-      validationRules: [
-        {method: app.Validation.notEmpty},
-        {method: app.Validation.maxLength, options: {length: 10}}
-      ]
-    }, {
-      type: app.Type.Button,
-      id: 'button',
-      value: 'Click Here'
-    }, {
-      type: app.Type.Text,
-      id: 'name-2',
-      label: 'Name',
-      placeholder: 'Joe',
-      dataModel: 'name',
-      validationRules: [
-        {method: app.Validation.notEmpty},
-        {method: app.Validation.maxLength, options: {length: 10}}
-      ]
-    }, {
-      type: app.Type.Checkbox,
-      id: 'my-checkbox',
-      label: 'Color',
-      dataModel: 'color',
-      list: [{label: 'Blue', value: 'blue'}, {label: 'Red', value: 'red'}, {label: 'Green', value: 'green'}],
-      default: ['blue', 'red']
-    }, {
-      type: app.Type.Radio,
-      id: 'one-checkbox',
-      label: 'Show Dessert Menu?',
-      dataModel: 'showDesserts',
-      list: [{label: 'Yes!', value: true}, {label: 'No thanks.', value: false}],
-      default: true
-    }, {
-      type: app.Type.Radio,
-      id: 'my-radio',
-      label: 'Dessert',
-      dataModel: 'dessert',
-      list: [{label: 'Cookies', value: 'cookies'}, {label: 'Ice Cream', value: 'iceCream'}],
-      default: 'cookies'
-    }, {
-      type: app.Type.Label,
-      id: 'iceCreamLogic',
-      label: 'Whip cream and sprinkles w/ ice cream is awesome!'
-    }, {
-      type: app.Type.Label,
-      id: 'cookieLogic',
-      label: 'Can\'t do it without milk'
-    }
-  ];
-
-  app.BehaviorSchema = [{
-    name: 'showIceCreamLogic',
-    target: 'iceCreamLogic',
-    type: 'isVisible',
-    rules: [{
-      type: 'proposition',
-      element: 'showDesserts',
-      value: true
-    }, {
-      type: 'variable',
-      element: 'dessert',
-      operator: 'EQUALS',
-      value: 'iceCream'
-    }, {
-      type: 'operator',
-      element: 'AND'
-    }]
+  app.FormSchema = [{
+    type: app.Type.Text,
+    id: 'name',
+    label: 'Name',
+    placeholder: 'Joe',
+    model: 'name',
+    validationRules: [
+      {method: app.Validation.notEmpty},
+      {method: app.Validation.maxLength, options: {length: 10}}
+    ]
   }, {
-    name: 'showCookieLogic',
-    target: 'cookieLogic',
-    type: 'isVisible',
-    rules: [{
-      type: 'proposition',
-      element: 'showDesserts',
-      value: true
-    }, {
-      type: 'variable',
-      element: 'dessert',
-      operator: 'EQUALS',
-      value: 'cookies'
-    }, {
-      type: 'operator',
-      element: 'AND'
-    }]
+    type: app.Type.Button,
+    id: 'button',
+    value: 'Click Here'
   }, {
-    name: 'showDessertLogic',
-    target: 'my-radio',
-    type: 'isVisible',
-    rules: [{
-      type: 'proposition',
-      element: 'showDesserts',
-      value: true
-    }]
+    type: app.Type.Text,
+    id: 'name-2',
+    label: 'Name',
+    placeholder: 'Joe',
+    model: 'name',
+    validationRules: [
+      {method: app.Validation.notEmpty},
+      {method: app.Validation.maxLength, options: {length: 10}}
+    ]
+  }, {
+    type: app.Type.Checkbox,
+    id: 'my-checkbox',
+    label: 'Color',
+    model: 'color',
+    list: [{label: 'Blue', value: 'blue'}, {label: 'Red', value: 'red'}, {label: 'Green', value: 'green'}],
+    default: ['blue', 'red']
+  }, {
+    type: app.Type.Radio,
+    id: 'one-checkbox',
+    label: 'Show Dessert Menu?',
+    model: 'showDesserts',
+    list: [{label: 'Yes!', value: true}, {label: 'No thanks.', value: false}],
+    default: true
+  }, {
+    type: app.Type.Radio,
+    id: 'my-radio',
+    label: 'Dessert',
+    model: 'dessert',
+    list: [{label: 'Cookies', value: 'cookies'}, {label: 'Ice Cream', value: 'iceCream'}],
+    default: 'cookies'
+  }, {
+    type: app.Type.Label,
+    id: 'iceCreamLogic',
+    label: 'Whip cream and sprinkles w/ ice cream is awesome!'
+  }, {
+    type: app.Type.Label,
+    id: 'cookieLogic',
+    label: 'Can\'t do it without milk'
   }];
 
   app.BehaviorType = {
@@ -302,5 +245,51 @@ var app = app || {};
     GREATER_THAN_OR_EQUAL_TO: 'GREATERTHANOREQUALTO',
     INCLUDES: 'INCLUDES'
   };
+
+  app.RulesSchema = [{
+    name: 'showIceCreamLogic',
+    target: 'iceCreamLogic',
+    type: 'isVisible',
+    rules: [{
+      type: app.BehaviorType.Proposition,
+      model: 'showDesserts',
+      value: true
+    }, {
+      type: app.BehaviorType.Variable,
+      model: 'dessert',
+      operator: app.Operator.EQUAL_TO,
+      value: 'iceCream'
+    }, {
+      type: app.BehaviorType.Operator,
+      operator: app.Operator.AND
+    }]
+  }, {
+    name: 'showCookieLogic',
+    target: 'cookieLogic',
+    type: 'isVisible',
+    rules: [{
+      type: app.BehaviorType.Proposition,
+      model: 'showDesserts',
+      value: true
+    }, {
+      type: app.BehaviorType.Variable,
+      model: 'dessert',
+      operator: app.Operator.EQUAL_TO,
+      value: 'cookies'
+    }, {
+      type: app.BehaviorType.Operator,
+      operator: app.Operator.AND
+    }]
+  }, {
+    name: 'showDessertLogic',
+    target: 'my-radio',
+    type: 'isVisible',
+    rules: [{
+      type: app.BehaviorType.Proposition,
+      model: 'showDesserts',
+      value: true
+    }]
+  }];
+
 
 })();

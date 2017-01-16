@@ -19,18 +19,18 @@ var app = app || {};
 
       this.template = _.template(this.model.attributes.template);
 
-      //TODO name this better
-      if(this.model.attributes.labelTemplate) {
+      // TODO: Name this better
+      if (this.model.attributes.labelTemplate) {
         this.labelTemplate = _.template(this.model.attributes.labelTemplate.type.template);
       }
       // Bind to the model when one of the three events are detected
       this.model.on('change:value', this.render, this);
-      this.model.on('change:value', this.notifyModelUpdated, this);
       this.model.on('change:isVisible', this.render, this);
       this.model.on('change:isReadOnly', this.render, this);
+      this.model.on('change:value', this.notifyModelUpdated, this);
 
       // Have this view pay attention to any external changes too (ie: button click to make read-only)
-      Backbone.on(this.model.attributes.dataModel + '-changed', this.changed, this);
+      Backbone.on(this.model.attributes.model + '-changed', this.changed, this);
     },
 
     changed: function (property, value) {
@@ -63,8 +63,8 @@ var app = app || {};
           if (this.model.attributes.type === app.Type.Checkbox) {
             option.checked = this.model.attributes.checked[item.value];
           } else if (this.model.attributes.type === app.Type.Radio) {
-            if(_.isUndefined(this.model.attributes.value) || _.isNull(this.model.attributes.value)) {
-              this.model.set('value', item.value, {silent:true}); // re-default a value to the first option
+            if (_.isUndefined(this.model.attributes.value) || _.isNull(this.model.attributes.value)) {
+              this.model.set('value', item.value, {silent: true}); // re-default a value to the first option
               this.notifyModelUpdated(); // important because we need to cascade down changes to other depended items
             }
             option.checked = this.model.attributes.value === item.value;
@@ -76,10 +76,10 @@ var app = app || {};
         this.$el.html(this.template(this.model.toJSON()));
       }
 
-      // TODO find out way to bundle non value attributes of an element
-      // if (!_.isUndefined(this.model.attributes.isReadOnly) && !this.model.attributes.isReadOnly) {
-      //   this.$el.prop('readonly', this.model.attributes.isReadOnly);
-      // }
+      // TODO: Find out way to bundle non value attributes of an element
+      if (!_.isUndefined(this.model.attributes.isReadOnly) && !this.model.attributes.isReadOnly) {
+        this.$el.prop('readonly', this.model.attributes.isReadOnly);
+      }
 
       // If validation errors were identified, add that template
       if (this.model.attributes.labelTemplate) {
@@ -100,7 +100,8 @@ var app = app || {};
         return;
       }
 
-      if (!this.model.attributes.dataModel) {
+      // Return if no model is associated with this element
+      if (!this.model.attributes.model) {
         return;
       }
 
@@ -120,10 +121,15 @@ var app = app || {};
       }
 
       // Sanitize booleans
-      if(value === 'true') {
+      if (value === 'true') {
         value = true;
       } else if (value === 'false') {
         value = false;
+      }
+
+      // Don't trigger any event changes if the values are the same;
+      if (this.model.attributes.value === value) {
+        return;
       }
 
       this.model.set('value', value, {silent: true}); // silent because we don't want to re-render DOM if it's not valid
@@ -135,10 +141,10 @@ var app = app || {};
 
     },
 
-    notifyModelUpdated: function() {
+    notifyModelUpdated: function () {
       // After we know this element field is good, let the parent form update itself with this data
-      console.log('model-changed, ' + this.model.attributes.dataModel + ', (' + this.model.attributes.value + ')');
-      Backbone.trigger('model-changed', this.model.attributes.dataModel, this.model.attributes.value);
+      console.log('model-changed, ' + this.model.attributes.model + ', (' + this.model.attributes.value + ')');
+      Backbone.trigger('model-changed', this.model.attributes.model, this.model.attributes.value);
     }
 
   });
