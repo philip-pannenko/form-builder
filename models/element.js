@@ -13,6 +13,7 @@ var app = app || {};
       styleClass: undefined,
       forAttr: undefined,
       checked: undefined,
+      placeholder: undefined,
       validationRules: {},
       validationMessages: [],
       isReadOnly: false,
@@ -117,10 +118,19 @@ var app = app || {};
 
     changeAttribute: function (attribute, value) {
       // If the attribute set to be changed is isVisible, also clear out the value associated with it.
-      if (attribute === 'isVisible' && value === false) {
-        this.set('value', null, {silent: true}); // May want to un-silent this so that we can propogate down this change
+      if (attribute === 'isVisible' && value === false && !_.isUndefined(this.attributes.value)) {
+        this.set('value', undefined, {silent: true}); // May want to un-silent this so that we can propogate down this change
+        this.notifyModelUpdated();
       }
       this.set(attribute, value);
+    },
+
+    notifyModelUpdated: function () {
+      if (!_.isUndefined(this.attributes.model)) {
+        // After we know this element field is good, let the parent form update itself with this data
+        console.log('element(' + this.id + ') changed its model(' + this.attributes.model + ') value to: ' + this.attributes.value);
+        Backbone.trigger('model-changed', this.id, this.attributes.model, this.attributes.value);
+      }
     }
 
   });

@@ -95,7 +95,7 @@ var app = app || {};
 //     });
 // };
 
-// TODO: Add a template that has an Add Party / Remove Party like behavior
+  // TODO: Add a template that has an Add Party / Remove Party like behavior
   app.Type = {
     Button: {
       type: 'button',
@@ -170,6 +170,8 @@ var app = app || {};
     }
   };
 
+  // TODO: Add readonly example
+  // TODO: Add button functionality example
   app.FormSchema = [{
     type: app.Type.Text,
     id: 'name',
@@ -186,13 +188,13 @@ var app = app || {};
     value: 'Click Here'
   }, {
     type: app.Type.Text,
-    id: 'name-2',
-    label: 'Name',
-    placeholder: 'Joe',
+    id: 'another-name',
+    label: 'Another Name Input Field Bound to Same Model',
+    placeholder: 'Jane',
     model: 'name',
     validationRules: [
       {method: app.Validation.notEmpty},
-      {method: app.Validation.maxLength, options: {length: 10}}
+      {method: app.Validation.maxLength, options: {length: 15}}
     ]
   }, {
     type: app.Type.Checkbox,

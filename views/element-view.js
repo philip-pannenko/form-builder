@@ -66,7 +66,7 @@ var app = app || {};
               this.model.set('value', item.value, {silent: true}); // re-default a value to the first option
 
               // Important because we need to cascade down changes to other dependent elements
-              this.notifyModelUpdated();
+              this.model.notifyModelUpdated();
             }
             option.checked = this.model.attributes.value === item.value;
           }
@@ -133,17 +133,11 @@ var app = app || {};
 
       this.model.set('value', value);
 
-      this.notifyModelUpdated();
+      this.model.notifyModelUpdated();
 
-    },
-
-    notifyModelUpdated: function () {
-      if (!_.isUndefined(this.model.attributes.model)) {
-        // After we know this element field is good, let the parent form update itself with this data
-        console.log('element(' + this.model.id + ') changed its model(' + this.model.attributes.model + ') value to: ' + this.model.attributes.value);
-        Backbone.trigger('model-changed', this.model.id, this.model.attributes.model, this.model.attributes.value);
-      }
     }
+
+
 
   });
 })(jQuery);
