@@ -236,7 +236,7 @@ var app = app || {};
   }, {
     type: app.Type.Label,
     id: 'ice-cream-label',
-    label: 'Whip cream and sprinkles w/ ice cream is awesome!'
+    label: 'Whipped cream and sprinkles w/ ice cream is awesome!'
   }, {
     type: app.Type.Label,
     id: 'cookie-label',
