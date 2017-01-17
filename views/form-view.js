@@ -85,7 +85,7 @@ var app = app || {};
         ' <h5>Generated Form</h5>' +
         ' <p>This form has been entirely generated from a JSON configuration file including individual input validation and form rules. ' +
         'Check out the <a href="#formResults">Form Results</a> to see how interacting with the form affects the bound values. ' +
-        'The label associated with ice cream, "<b>Whip cream and sprinkles w/ ice cream is awesome!</b>" is a good reference for demonstrating a few ' +
+        'The label associated with ice cream, "<b>Whipped cream and sprinkles w/ ice cream is awesome!</b>" is a good reference for demonstrating a few ' +
         'capabilities of how the ordered cascading rules are leveraged. Try to enable the ice cream label while having "<b>Show Dessert Menu?</b>" set to "<i>No thanks.</i>". ' +
         'Hint: Take a look at the <a href="#ruleSchema">Rule Schema</a> for the secret number or name.</p>' +
         ' <form id="form"></form>' +
