@@ -42,13 +42,13 @@ var app = app || {};
       var model = this.attributes.model;
 
       // Don't assign nothing to nothing
-      if(_.isUndefined(modelProperty) && _.isUndefined(value)) {
+      if (_.isUndefined(modelProperty) && _.isUndefined(value)) {
         return false;
       }
 
       // If the value is undefined, it means we'll clear out this model property
       // Otherwise we'll create it or update it
-      if(_.isUndefined(value)) {
+      if (_.isUndefined(value)) {
         delete model[modelProperty];
       } else {
         model[modelProperty] = value;
