@@ -173,6 +173,13 @@ var app = app || {};
     }
   };
 
+  // TODO: Add button functionality example
+  // {
+  //   type: app.Type.Button,
+  //   id: 'button',
+  //   value: 'Click Here to Clear Name Model'
+  // },
+
   app.FormSchema = [{
     type: app.Type.Text,
     id: 'name',
@@ -200,14 +207,12 @@ var app = app || {};
     placeholder: 'Read-Only Placeholder',
     model: 'name',
     isReadOnly: true
-  },
-  // TODO: Add button functionality example
-  // {
-  //   type: app.Type.Button,
-  //   id: 'button',
-  //   value: 'Click Here to Clear Name Model'
-  // },
-  {
+  }, {
+    type: app.Type.Text,
+    id: 'secret-number',
+    label: 'Do you know the secret number?',
+    model: 'secretNumber'
+  }, {
     type: app.Type.Checkbox,
     id: 'my-checkbox',
     label: 'Color',
@@ -246,17 +251,17 @@ var app = app || {};
   };
 
   app.Operator = {
-    AND: 'AND',
-    OR: 'OR',
-    XOR: 'XOR',
-    NOT: 'NOT',
-    EQUAL_TO: 'EQUALTO',
-    NOT_EQUAL_TO: 'NOTEQUALTO',
-    LESS_THAN: 'LESSTHAN',
-    GREATER_THAN: 'GREATERTHAN',
-    LESS_THAN_OR_EQUAL_TO: 'LESSTHANOREQUALTO',
-    GREATER_THAN_OR_EQUAL_TO: 'GREATERTHANOREQUALTO',
-    INCLUDES: 'INCLUDES'
+    AND: {name: 'AND', value: '&&'},
+    OR: {name: 'OR', value: '||'},
+    XOR: {name: 'XOR'},
+    NOT: {name: 'NOT', value: '!'},
+    EQUALTO: {name: 'EQUALTO', value: '=='},
+    NOTEQUALTO: {name: 'NOTEQUALTO', value: '!='},
+    LESSTHAN: {name: 'LESSTHAN', value: '<'},
+    GREATERTHAN: {name: 'GREATERTHAN', value: '>'},
+    LESSTHANOREQUALTO: {name: 'LESSTHANOREQUALTO', value: '<='},
+    GREATERTHANOREQUALTO: {name: 'GREATERTHANOREQUALTO', value: '>='},
+    INCLUDES: {name: 'INCLUDES'}
   };
 
   app.RulesSchema = [{
@@ -270,11 +275,27 @@ var app = app || {};
     }, {
       type: app.BehaviorType.Variable,
       model: 'dessert',
-      operator: app.Operator.EQUAL_TO,
+      operator: app.Operator.EQUALTO,
       value: 'iceCream'
     }, {
       type: app.BehaviorType.Operator,
       operator: app.Operator.AND
+    }, {
+      type: app.BehaviorType.Variable,
+      model: 'name',
+      operator: app.Operator.EQUALTO,
+      value: 'Philip'
+    }, {
+      type: app.BehaviorType.Operator,
+      operator: app.Operator.OR
+    }, {
+      type: app.BehaviorType.Variable,
+      model: 'secretNumber',
+      operator: app.Operator.GREATERTHAN,
+      value: 40
+    }, {
+      type: app.BehaviorType.Operator,
+      operator: app.Operator.OR
     }]
   }, {
     name: 'showCookieLabel',
@@ -287,7 +308,7 @@ var app = app || {};
     }, {
       type: app.BehaviorType.Variable,
       model: 'dessert',
-      operator: app.Operator.EQUAL_TO,
+      operator: app.Operator.EQUALTO,
       value: 'cookies'
     }, {
       type: app.BehaviorType.Operator,

@@ -134,6 +134,5 @@ var app = app || {};
     }
 
 
-
   });
 })(jQuery);
